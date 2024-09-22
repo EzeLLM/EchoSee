@@ -1,0 +1,8 @@
+SpeechToText:
+  ChunkSize: 4096
+  Rate: 44100
+  Channels: 1
+  Threshold: 750
+  WaitTime: 50
+
+  audio_path: /dev/audio/

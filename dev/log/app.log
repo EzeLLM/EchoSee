@@ -1,0 +1,69 @@
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:SpeechToText initialized a fresh instance
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): huggingface.co:443
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/generation_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/tokenizer_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/chat_template.json HTTP/1.1" 404 0
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:SpeechToText initialized a fresh instance
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): huggingface.co:443
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/generation_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/tokenizer_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/chat_template.json HTTP/1.1" 404 0
+INFO:root:Time taken to transcribe in milliseconds: 18.73046112060547
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:File save time in milliseconds: 0.0013859272003173828
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): huggingface.co:443
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/generation_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/tokenizer_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/chat_template.json HTTP/1.1" 404 0
+INFO:root:Time taken to transcribe in milliseconds: 14.030264139175415
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:File save time in milliseconds: 0.002568960189819336
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): huggingface.co:443
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/generation_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/tokenizer_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/chat_template.json HTTP/1.1" 404 0
+INFO:root:Time taken to transcribe in milliseconds: 14.877157211303711
+INFO:root:Transcription:  You know who's the head of state in America? Nobody but Israel and the Jews. Screw them all.
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:Output path: /dev/audio/output.wav
+INFO:root:SpeechToText initialized a fresh instance
+INFO:root:File save time in milliseconds: 0.0018320083618164062
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): huggingface.co:443
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/generation_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/preprocessor_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/tokenizer_config.json HTTP/1.1" 200 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/processor_config.json HTTP/1.1" 404 0
+DEBUG:urllib3.connectionpool:https://huggingface.co:443 "HEAD /openai/whisper-large-v3/resolve/main/chat_template.json HTTP/1.1" 404 0
+INFO:root:Time taken to transcribe in milliseconds: 12.61148715019226
+INFO:root:Transcription:  it's all about israel and the jews they are that that you know like they're the worst
