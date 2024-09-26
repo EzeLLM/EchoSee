@@ -5,4 +5,34 @@ SpeechToText:
   Threshold: 750
   WaitTime: 50
 
-  audio_path: /dev/audio/
+  audio_path: /dev/audio/speech.wav
+
+
+  Modes:
+    local:
+
+    groq:
+      # nothing needed for groq now
+  
+  mode: 'groq' # local, groq
+
+TTS:
+  Modes:
+    light:
+      speaker_index: 7306
+    mid:
+      speaker_wav_path: 'dev/audio/mid_speaker_wav/female.wav'
+      language: 'en'
+    heavy:
+      # nothing needed for heavy now
+    api:
+      voice: 'Matthew'
+
+  mode: 'api' # light, heavy, mid
+  save_path: 'dev/audio/tts_output.wav'
+  
+LLM:
+  # nothing needed for LLM now
+  #TODO temp, max context length, system prompt, etc 
+EchoSee:
+  # nothing needed for EchoSee now

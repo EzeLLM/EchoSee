@@ -1,6 +1,8 @@
 import os
 from groq import Groq
 import FuncHub
+from dotenv import load_dotenv
+load_dotenv()
 GROQAPI = os.getenv('GROQAPI')
 
 class LLMInference:
@@ -17,7 +19,7 @@ class LLMInference:
         history.append(new_message)
         return history
 
-    def infer_groq(self, messages, model = "llama-3.1-8b-instant",max_tokens=512, temperature=1.1): 
+    def infer_groq(self, messages, model = "llama-3.1-70b-versatile",max_tokens=256, temperature=0.7): 
         chat_completion = self.client.chat.completions.create(
             messages=messages,
             model=model,

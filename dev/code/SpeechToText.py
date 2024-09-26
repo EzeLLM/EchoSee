@@ -7,23 +7,53 @@ import FuncHub
 import logger
 import time
 import os
+import ffmpeg
+from groq import Groq
+logger = logger.Logger()
+logger.log('SpeechToText initialized a fresh instance')
 class SpeechToText():
-    def __init__(self,model_name='openai/whisper-large-v3',config='dev/code/config/echosee.yaml') -> None:
-        self.model_name = model_name
+    def __init__(self,config) -> None:
+        logger.log('SpeechToText initialized a fresh instance')
+        self.output_path = os.path.join('dev/audio','output.wav')
+        self.output_reduced_path = os.path.join('dev/audio','output_reduced.wav')
         self.config = FuncHub.open_yaml(config,'SpeechToText')
-
+        self.mode = self.config['mode'].lower()
+        self.mode_config = self.config['Modes'][self.mode]
         self.ChunkSize = self.config['ChunkSize']
         self.Rate = self.config['Rate']
         self.Threshold = self.config['Threshold']
         self.WaitTime = self.config['WaitTime']
         self.Channels = self.config['Channels']
+        self.device = FuncHub.get_device() # auto select device
+        print(self.device)
+        torch_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
 
-        self.logger = logger.Logger()
-        self.logger.log('SpeechToText initialized a fresh instance')
+        if self.mode == 'local':
+
+            self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
+                'openai/whisper-large-v3', torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
+            )
+            self.model.to(self.device)
+
+            self.processor = AutoProcessor.from_pretrained(self.model_name)
+        elif self.mode  == 'groq':
+            self.client = Groq(
+                api_key=os.getenv('GROQAPI'),
+            )
+
 
         self.output_path = os.path.join('dev/audio','output.wav')
 
-    def transcribe(self,audio_file):
+    def transcribe_groq(self,audio_file):
+        ffmpeg.input(audio_file).output(self.output_reduced_path, ar=16000, ac=1).overwrite_output().run()
+        with open(self.output_reduced_path, "rb") as file:
+            transcription = self.client.audio.transcriptions.create(
+            file=(self.output_reduced_path, file.read()), 
+            model='distil-whisper-large-v3-en',
+            )
+            return transcription.text
+
+    def transcribe_local(self,audio_file):
         device = FuncHub.get_device() # auto select device
         torch_dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
 
@@ -47,6 +77,12 @@ class SpeechToText():
         result = pipe(audio_file)
 
         return result["text"]
+    
+    def transcribe(self,audio_file):
+        if self.mode == 'local':
+            return self.transcribe_local(audio_file)
+        elif self.mode == 'groq':
+            return self.transcribe_groq(audio_file)
 
     # function that records audio from microphone and returns it as a file
     def record_audio(self,write=False):
@@ -100,19 +136,19 @@ class SpeechToText():
             wf.setframerate(RATE)
             wf.writeframes(recorded_data)
             wf.close()
-            self.logger.log(f"File save time in milliseconds: {time.time()-start_write}")
+            logger.log(f"File save time in milliseconds: {time.time()-start_write}")
 
 
         #recorded_data = b''.join(frames)
 
         return recorded_data, CHANNELS, p.get_sample_size(FORMAT), RATE
 
-    def main(self):
+    def stt(self):
         _, _, _, _ = self.record_audio(write=True)
         time_start = time.time()
         result = self.transcribe(self.output_path)
-        self.logger.log(f"Time taken to transcribe in milliseconds: {time.time()-time_start}")
-        self.logger.log(f'Transcription: {result}')
+        logger.log(f"Time taken to transcribe in milliseconds: {time.time()-time_start}")
+        logger.log(f'Transcription: {result}')
         return result
 
     
