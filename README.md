@@ -13,6 +13,8 @@ Welcome to the EchoSee Project! This README will guide you through understanding
 - [Future Plans](#future-plans)
 - [Contributing](#contributing)
 - [License](#license)
+## News:
+Added LLM tool support which will allow the LLM to run python functions. The potential is theoratically infinite!
 
 ## Introduction
 
@@ -25,6 +27,7 @@ EchoSee isn't just another voice assistant—it's a leap forward in AI-powered h
 - **Speech-to-Text (STT)**: High-accuracy STT using local or Groq-based models.
 - **Modular Design**: Easily extendable with new features like camera integration.
 - **Logging**: Comprehensive logging for debugging and performance tracking.
+- **LLM Tools**: The LLM class can use functions that allows the LLM to access recent data ,run code ,do math ,etc.
 
 ## Getting Started
 
