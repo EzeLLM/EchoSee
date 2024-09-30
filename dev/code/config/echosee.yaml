@@ -2,7 +2,7 @@ SpeechToText:
   ChunkSize: 4096
   Rate: 44100
   Channels: 1
-  Threshold: 750
+  Threshold: 1250
   WaitTime: 50
 
   audio_path: /dev/audio/speech.wav
@@ -26,13 +26,17 @@ TTS:
     heavy:
       # nothing needed for heavy now
     api:
-      voice: 'Matthew'
+      voice: 'Salli'
 
   mode: 'api' # light, heavy, mid
   save_path: 'dev/audio/tts_output.wav'
-  
-LLM:
+
+LLMInference:
   # nothing needed for LLM now
   #TODO temp, max context length, system prompt, etc 
+  history_path: 'history/helpful_standart_open.json'
+  llm_host: 'groq'
+  llm_model: 'llama-3.1-70b-versatile'
+  tools: True # tools are supported with llama models only. support for other models will be added later, if needed open issue.
 EchoSee:
   # nothing needed for EchoSee now

@@ -9,7 +9,7 @@ class EchoSee:
     def __init__(self, config):
         self.config = FuncHub.open_yaml(config,'EchoSee')
         self.tts = TTS(config=config)
-        self.llm = LLMInference()
+        self.llm = LLMInference(config=config)
         self.stt = SpeechToText(config=config)
         self.output_path = FuncHub.open_yaml(config,'TTS')['save_path']
     
