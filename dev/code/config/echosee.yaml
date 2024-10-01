@@ -34,9 +34,9 @@ TTS:
 LLMInference:
   # nothing needed for LLM now
   #TODO temp, max context length, system prompt, etc 
-  history_path: 'history/helpful_standart_open.json'
-  llm_host: 'groq'
-  llm_model: 'llama-3.1-70b-versatile'
-  tools: True # tools are supported with llama models only. support for other models will be added later, if needed open issue.
+  history_path: 'history/helpful_standart_open.json' # history is not used with gemini now
+  llm_host: 'gemini'
+  llm_model: 'gemini-1.5-flash'
+  tools: True # Tools are supported for groq llama and gemini models
 EchoSee:
   # nothing needed for EchoSee now
