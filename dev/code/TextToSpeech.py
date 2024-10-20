@@ -113,7 +113,6 @@ class TTS():
         tts = TTS_model("tts_models/multilingual/multi-dataset/xtts_v2").to(self.device)
         tts.tts_to_file(text=text, speaker_wav=self.speaker_wav, language=self.language, file_path=self.SAVE_PATH)
 
-
     def echofy_light(self,text):
         speech = self.synthesiser(text, forward_params={"speaker_embeddings": self.speaker_embedding})
         sf.write(self.SAVE_PATH, speech["audio"], samplerate=speech["sampling_rate"])
@@ -131,9 +130,6 @@ class TTS():
             wav_file.writeframes(audio_data)
             wav_file.close()
         
-
-
-
     def echofy(self,text):
         if self.mode == 'light':
             self.echofy_light(text)

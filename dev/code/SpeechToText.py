@@ -49,7 +49,7 @@ class SpeechToText():
         with open(self.output_reduced_path, "rb") as file:
             transcription = self.client.audio.transcriptions.create(
             file=(self.output_reduced_path, file.read()), 
-            model='distil-whisper-large-v3-en',
+            model='whisper-large-v3-turbo',
             )
             return transcription.text
 

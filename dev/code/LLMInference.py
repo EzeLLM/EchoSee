@@ -1,26 +1,31 @@
 import os
+import PIL.Image
 from groq import Groq
 import FuncHub
 from dotenv import load_dotenv
-import LLMTools.LLMTools_Groq as groq_tools
-import LLMTools.LLMTools_GEMINI as gemini_tools
-import google.generativeai as genai
+import LLMTools_Groq as groq_tools
+# import LLMTools_GEMINI as gemini_tools
+import LLMTools_SeeClass as see_tools
+# import google.generativeai as genai
+import PIL
 import json
 load_dotenv()
 GROQAPI = os.getenv('GROQAPI')
-genai.configure(api_key=os.getenv("GEMINIAPI"))
+# genai.configure(api_key=os.getenv("GEMINIAPI"))
 
 class LLMInference:
     def __init__(self,config):
         self.client = Groq(
             api_key=GROQAPI,
         )
+        
         self.config = FuncHub.open_yaml(config,'LLMInference')
         self.history_path = self.config['history_path']
         self.tools:bool = self.config['tools']
         self.llm_host = self.config['llm_host']
         self.llm_model = self.config['llm_model']
-
+        self.see = see_tools.See() if self.config['append_pics'] else False
+        
         if self.llm_host == "groq":
             if self.tools:
                 self.llm_tools = groq_tools.LLMTools()
@@ -77,10 +82,17 @@ class LLMInference:
         return chat_completion.choices[0].message.content
     
     def infer_gemini(self, messages, max_tokens=256, temperature=0.7):
-        response = self.chat.send_message(messages)
+        if self.see:
+            img = PIL.Image.open(self.see.see())
+            response = self.model.generate_content([messages,img])
+        else:
+            response = self.chat.send_message(messages)
+
         return response.text
     
+    
     def infer_gemini_with_tools(self, message,max_tokens=256, temperature=0.7):
+
         response = self.chat.send_message(message)
         responses = self.llm_tools.process_tool_calls(response)
         if responses:

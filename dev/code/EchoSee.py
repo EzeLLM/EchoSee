@@ -31,7 +31,7 @@ class EchoSee:
 
 
 
-            
+        
 if __name__ == "__main__":
     echosee = EchoSee('dev/code/config/echosee.yaml')
     echosee.echosee()

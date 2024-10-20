@@ -35,8 +35,13 @@ LLMInference:
   # nothing needed for LLM now
   #TODO temp, max context length, system prompt, etc 
   history_path: 'history/helpful_standart_open.json' # history is not used with gemini now
-  llm_host: 'gemini'
-  llm_model: 'gemini-1.5-flash'
+  llm_host: 'groq'
+  llm_model: 'llama3-groq-70b-8192-tool-use-preview'
   tools: True # Tools are supported for groq llama and gemini models
+  append_pics: False # Append pics with every prompt call, overrides the tool request, which makes less requests.
+
 EchoSee:
   # nothing needed for EchoSee now
+
+See:
+  cam_port: 0 # 0 for default camera
