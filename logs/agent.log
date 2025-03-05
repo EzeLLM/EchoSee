@@ -1,0 +1,2 @@
+2025-03-05 23:52:49,198 - DEBUG - Starting new HTTPS connection (1): api.tavily.com:443
+2025-03-05 23:52:52,368 - DEBUG - https://api.tavily.com:443 "POST /search HTTP/11" 200 4850
