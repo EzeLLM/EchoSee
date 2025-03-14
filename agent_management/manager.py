@@ -19,7 +19,7 @@ if __name__ == "__main__":
     print(graph.get_graph().draw_mermaid())
     
     # Test the agent
-    messages = [HumanMessage(content="calculate the 4th factorial of e^12 then divide it by 12 and give me the result")]
+    messages = [HumanMessage(content="You hvae the oppurtunity to save one person on earth. You can save one person by either saving them from a fire or saving them from a car accident. Which one would you save?")]
     messages = graph.invoke({"messages": messages})
     for m in messages['messages']:
         m.pretty_print()
