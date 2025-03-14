@@ -3,39 +3,24 @@ from agent_management import agents
 import os
 import dotenv
 dotenv.load_dotenv()
-from langgraph.graph import START, END, StateGraph
-from langgraph.graph import MessagesState
-from langgraph.prebuilt import ToolNode
-from langgraph.prebuilt import tools_condition
-
-# Set up LLM and agent
-llm = ChatOpenAI(api_key=os.environ['OPENAI_API_KEY'], model='gpt-4o')
-llm_agent = llm.bind_tools([agents.search])
-
-# Node
-def tool_calling_llm(state: MessagesState):
-    return {"messages": [llm_agent.invoke(state["messages"])]}
-
-# Build graph
-builder = StateGraph(MessagesState)
-builder.add_node("tool_calling_llm", tool_calling_llm)
-builder.add_node("tools", ToolNode([agents.search]))  # Use ToolNode with your search tool
-builder.add_edge(START, "tool_calling_llm")
-
-# The key part - use tools_condition without providing a mapping dictionary
-builder.add_conditional_edges(
-    "tool_calling_llm",
-    tools_condition,  # This automatically routes to "tools" node when tool calls present
-)
-
-# After tools, route back to the LLM
-builder.add_edge("tools", "tool_calling_llm")
-graph = builder.compile()
-
-
+from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage
-messages = [HumanMessage(content="who won the most recent american presidential election?")]
-messages = graph.invoke({"messages": messages})
-for m in messages['messages']:
-    m.pretty_print()
+from utils.utils import llm, llm_config
+
+# Set up tools
+tools = [agents.search, agents.code_agent]
+
+# Create React agent
+# You can customize the prompt if needed
+prompt = llm_config["system_prompt"]
+graph = create_react_agent(llm, tools=tools, prompt=prompt)
+
+if __name__ == "__main__":
+    print(graph.get_graph().draw_mermaid())
+    
+    # Test the agent
+    messages = [HumanMessage(content="calculate the 4th factorial of e^12 then divide it by 12 and give me the result")]
+    messages = graph.invoke({"messages": messages})
+    for m in messages['messages']:
+        m.pretty_print()
 

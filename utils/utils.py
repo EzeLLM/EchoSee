@@ -1,5 +1,10 @@
 import yaml
 import inspect
+from langchain_openai import ChatOpenAI
+import os
+import dotenv
+from smolagents import LiteLLMModel
+dotenv.load_dotenv()
 
 def open_yaml(file_path, key=None):
     try:
@@ -19,3 +24,7 @@ def open_yaml(file_path, key=None):
         print(f"Key {key} not found in file {file_path}.")
         return None
 
+
+litellm_llm = LiteLLMModel("openai/gpt-4o-mini",api_key=os.environ['OPENAI_API_KEY'])
+llm = ChatOpenAI(api_key=os.environ['OPENAI_API_KEY'], model='gpt-4o-mini')
+llm_config = open_yaml("config.yml", "LLM")
