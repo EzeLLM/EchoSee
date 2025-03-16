@@ -1,0 +1,8 @@
+langchain-openai
+langgraph
+sounddevice
+soundfile
+kokoro
+python-dotenv
+tavily-python
+smolagents 

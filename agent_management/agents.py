@@ -7,6 +7,28 @@ logger = logger.Logger('agent')
 from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
 from utils.utils import litellm_llm, llm
 from tavily import TavilyClient
+from datetime import datetime
+
+
+
+@tool
+# get the current time in text format
+def get_current_time() -> str:
+    """
+    Gets the current time in text format.
+    """
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+@tool
+# get the current date in text format
+def get_current_date() -> str:
+    """
+    Gets the current date in text format.
+    """
+    return datetime.now().strftime("%Y-%m-%d")
+
+
+
 
 # NOTE : should i replace the tavily search with duckduckgo search?
 @tool

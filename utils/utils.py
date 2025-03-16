@@ -5,7 +5,7 @@ import os
 import dotenv
 from smolagents import LiteLLMModel
 dotenv.load_dotenv()
-
+CONFIG_PATH='config.yml'
 def open_yaml(file_path, key=None):
     try:
         with open(file_path, 'r') as file:
@@ -24,7 +24,7 @@ def open_yaml(file_path, key=None):
         print(f"Key {key} not found in file {file_path}.")
         return None
 
-
+tts_config = open_yaml(CONFIG_PATH,'TTS')
 litellm_llm = LiteLLMModel("openai/gpt-4o-mini",api_key=os.environ['OPENAI_API_KEY'])
 llm = ChatOpenAI(api_key=os.environ['OPENAI_API_KEY'], model='gpt-4o-mini')
-llm_config = open_yaml("config.yml", "LLM")
+llm_config = open_yaml(CONFIG_PATH, "LLM")

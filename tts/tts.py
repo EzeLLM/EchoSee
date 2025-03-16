@@ -190,6 +190,6 @@ class TTS:
         return list_audio_devices()
 
 
-list_audio_devices()
-ts = TTS(lang_code='a', voice='af_heart')
-ts.play_with_device("""Hey how are you doing""", device=4)
+# list_audio_devices()
+# ts = TTS(lang_code='a', voice='af_heart')
+# ts.play_with_device("""Hey how are you doing""", device=4)

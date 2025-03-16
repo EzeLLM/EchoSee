@@ -1,0 +1,38 @@
+from agent_management import agent_manager
+from utils.utils import llm, llm_config
+from tts.tts import TTS
+from agent_management.agent_manager import AgentManager
+from langchain_core.messages import HumanMessage
+from utils.utils import *
+
+def main():
+    # Initialize TTS
+    tts = TTS(lang_code='a', voice='af_heart')
+    print("Voice Assistant started! Press Enter after typing your question (type 'quit' to exit)")
+    am = AgentManager()
+    while True:
+        try:
+            # Get user input
+            user_query = input("\nWhat can I help you with? (or type 'quit' to exit): ")
+            
+            # Check for quit command
+            if user_query.lower() == 'quit':
+                print("Goodbye!")
+                break
+                
+            # Process query through agent
+            response = am.process_message(user_query)
+            
+            # Extract the assistant's response
+            assistant_message = response[-1].content
+            print(f"\nAssistant: {assistant_message}")
+            
+            # Convert response to speech
+            tts.play_with_device(assistant_message, device=tts_config['device'])
+            
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            continue
+
+if __name__ == "__main__":
+    main()
