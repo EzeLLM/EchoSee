@@ -1,0 +1,1 @@
+CONFIG_PATH="/home/ezel/Development/EchoSee/config.yml"

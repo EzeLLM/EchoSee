@@ -15,4 +15,9 @@ LLM:
     ⬆️ Raise stress 1 level [or](+2) 2 levels (only works on less stressed, usually short words)
 
 TTS:
-  device: 4
+  device: 15
+
+STT:
+  model_size: turbo
+  sample_rate: 16000
+  channels: 1

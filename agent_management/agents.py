@@ -54,23 +54,34 @@ def search(query:str, time_range:str,return_raw_results) -> str:
         If return_raw_results is True, returns search results.
         If return_raw_results is False, returns an answer, which may not be so accurate."""
     
-    time_range = time_range.lower()
-    if time_range not in ['day', 'week', 'month', 'year', 'none']:
-        logger.error(f"Invalid time range: {time_range}, setting to 'none'.")
+    # Validate and normalize time_range
+    valid_ranges = {'day', 'week', 'month', 'year', 'none'}
+    time_range = time_range.lower() if time_range.lower() in valid_ranges else 'none'
+    if time_range not in valid_ranges:
+        logger.error(f"Invalid time range: {time_range}, defaulting to 'none'")
         time_range = 'none'
+
+    # Configure API parameters
+    search_params = {'query': query}
+    if time_range != 'none':
+        search_params['time_range'] = time_range
+    if not return_raw_results:
+        search_params['include_answer'] = 'basic'
+
+    # Execute search
     client = TavilyClient(os.environ['TAVILY'])
+    print(f"Searching for '{query}' (time range: '{time_range}'), return raw: {return_raw_results}")
+    
+    response = client.search(**search_params)
+
+    # Process results
     if return_raw_results:
-        response = client.search(
-            query=query,
-            time_range=time_range
-        )
-        return response
-    response = client.search(
-        query=query,
-        time_range=time_range,
-        include_answer='basic'
-    )
-    return response['answer'] if 'answer' in response else response['results']
+        result = []
+        for item in response.get('results', []):
+            result.append(f"Title: {item['title']}\nURL: {item['url']}\nContent: {item['content']}\n\n")
+        return ''.join(result).strip()
+    
+    return response.get('answer', 'No answer available')
     
 # @tool
 # def compute(code:str) -> int:
@@ -100,17 +111,17 @@ def code_agent(task:str) -> str:
 
 if __name__ == '__main__':
     # Test the search function
-    # query = "Who killed JFK?"
-    # time_range = "month"
+    query = "JFK documents"
+    time_range = "none"
 
-    # try:
-    #     # Use invoke instead of direct call
-    #     result = search.invoke({"query": query, "time_range": time_range, "return_raw_results": True})
-    #     print(f"Search Results for '{query}' in the past '{time_range}':\n{result}")
-    # except Exception as e:
-    #     print(f"An error occurred: {e}")
+    try:
+        # Use invoke instead of direct call
+        result = search.invoke({"query": query, "time_range": time_range, "return_raw_results": False})
+        print(f"Search Results for '{query}' in the past '{time_range}':\n{result}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
-    result = code_agent.invoke({"task": "compute the 3rd factorial of e^12"})
-    print(result)
+    # result = code_agent.invoke({"task": "compute the 3rd factorial of e^12"})
+    # print(result)
     

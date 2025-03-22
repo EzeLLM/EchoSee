@@ -189,6 +189,10 @@ class TTS:
         """
         return list_audio_devices()
 
+if __name__ == "__main__":
+    tts = TTS(lang_code='a', voice='af_heart')
+    tts.list_devices()
+    tts.play_with_device("Hello, how are you today?")
 
 # list_audio_devices()
 # ts = TTS(lang_code='a', voice='af_heart')
