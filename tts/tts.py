@@ -102,9 +102,9 @@ class TTS:
         """Generate audio using OpenAI."""
         response = self.client.audio.speech.create(
             model=self.model,
-            voice=voice or self.voice,
+            voice=self.voice,
             input=text,
-            speed=speed or self.speed,
+            speed=self.speed,
             response_format=self.response_format,
             instructions="""Voice: Clear, friendly, affectionate
 Tone: Neutral and informative, maintaining friendly tone
