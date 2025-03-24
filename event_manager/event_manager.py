@@ -112,24 +112,4 @@ class EventManager:
                     self.logger.error(f"Error executing event {event_id}: {e}")
             
             # Sleep for a short time to prevent busy waiting
-            time.sleep(0.1)
-
-def play_alarm(message):
-    print(f"ALARM: {message}")
-    # Here you would add code to play sound using winsound, playsound, etc.
-
-# Create and start the event manager
-manager = EventManager()
-manager.start()
-
-# Add some events
-now = datetime.now()
-manager.add_event(now + timedelta(seconds=5,hou), play_alarm, "Wake up!")
-manager.add_event(now + timedelta(seconds=10), play_alarm, "Time for lunch!")
-
-# Keep the program running
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    manager.stop()
+            time.sleep(1)

@@ -10,12 +10,13 @@ from utils.utils import llm, llm_config
 from langchain_core.tools import tool
 import threading
 from utils.utils import open_yaml
+from event_manager import tools as event_tools
 import CONSTANTS
 class AgentManager:
     def __init__(self):
         # Set up tools
         self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'AgentManager')
-        self.tools = [agents.search, agents.code_agent, agents.get_current_time, agents.get_current_date,self.clear_history]
+        self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,self.clear_history]
         
         # Initialize conversation history
         self.conversation_history: List[Dict[str, List[BaseMessage]]] = []
@@ -62,6 +63,7 @@ class AgentManager:
             "input": [current_message],
             "output": response["messages"]
         })
+
         
         return response["messages"]
     
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     agent_manager = AgentManager()
     
     # Test with a sample message
-    response_messages = agent_manager.process_message("Hey jarvis what is the current time and date?")
+    response_messages = agent_manager.process_message("hey babe set an alarm to run in 1 minute")
     for m in response_messages:
         m.pretty_print()
     
@@ -94,4 +96,6 @@ if __name__ == "__main__":
         print("Input:", turn["input"][0].content)
         print("Output:", turn["output"][-1].content)
         print("---")
+    import time 
+    time.sleep(65)
 
