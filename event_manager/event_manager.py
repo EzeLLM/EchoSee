@@ -77,6 +77,9 @@ class EventManager:
         Add a recurring event that runs at regular intervals
         Returns event ID that can be used to cancel the event
         """
+        for event_t,_,call_b,args_,kwargs_ in self.events:
+            if call_b == callback and args_ == args and kwargs_ == kwargs:
+                return -1
         def recurring_wrapper():
             callback(*args, **kwargs)
             # Reschedule the event
@@ -121,7 +124,7 @@ manager.start()
 
 # Add some events
 now = datetime.now()
-manager.add_event(now + timedelta(seconds=5), play_alarm, "Wake up!")
+manager.add_event(now + timedelta(seconds=5,hou), play_alarm, "Wake up!")
 manager.add_event(now + timedelta(seconds=10), play_alarm, "Time for lunch!")
 
 # Keep the program running
