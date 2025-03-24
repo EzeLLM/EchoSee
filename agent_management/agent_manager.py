@@ -7,12 +7,15 @@ dotenv.load_dotenv()
 from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, BaseMessage
 from utils.utils import llm, llm_config
-
-
+from langchain_core.tools import tool
+import threading
+from utils.utils import open_yaml
+import CONSTANTS
 class AgentManager:
     def __init__(self):
         # Set up tools
-        self.tools = [agents.search, agents.code_agent, agents.get_current_time, agents.get_current_date]
+        self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'AgentManager')
+        self.tools = [agents.search, agents.code_agent, agents.get_current_time, agents.get_current_date,self.clear_history]
         
         # Initialize conversation history
         self.conversation_history: List[Dict[str, List[BaseMessage]]] = []
@@ -23,8 +26,16 @@ class AgentManager:
         # Create React agent
         self.prompt = llm_config["system_prompt"]
         self.agent = create_react_agent(llm, tools=self.tools, prompt=self.prompt)
-    
+        self.clear_timer = None
+    def _reset_history_timer(self):
+        if self.clear_timer is not None:
+            self.clear_timer.cancel()
+        self.clear_timer = threading.Timer(60*(int(self.config['clear_time'])), self.clear_history)
+        self.clear_timer.daemon = True
+        self.clear_timer.start()
+
     def process_message(self, message: str) -> List[BaseMessage]:
+
         """
         Process a message and maintain conversation history.
         
@@ -34,6 +45,8 @@ class AgentManager:
         Returns:
             List of response messages
         """
+        # Reset history timer
+        self._reset_history_timer()
         # Add current message to the running list
         current_message = HumanMessage(content=message)
         self.agent_messages.append(current_message)
@@ -60,7 +73,6 @@ class AgentManager:
             List of conversation turns, each containing input and output messages
         """
         return self.conversation_history
-    
     def clear_history(self):
         """Clear the conversation history and running message list."""
         self.conversation_history = []

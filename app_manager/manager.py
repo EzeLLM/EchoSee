@@ -7,7 +7,7 @@ from utils.utils import *
 from stt.stt import STT
 def main():
     # Initialize TTS
-    tts = TTS()
+    tts = TTS( )
     print("Voice Assistant started! Press Enter after typing your question (type 'quit' to exit)")
     am = AgentManager()
     stt = STT()

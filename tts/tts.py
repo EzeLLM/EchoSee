@@ -106,9 +106,9 @@ class TTS:
             input=text,
             speed=self.speed,
             response_format=self.response_format,
-            instructions="""Voice: Clear, friendly, affectionate
-Tone: Neutral and informative, maintaining friendly tone
-Delivery: seductive"""
+            instructions="""Voice: friendly, realistic, and engaging
+            Tone: friendly, engaging, and conversational
+            Delivery: normal, conversational, and engaging"""
         )
         
         audio_bytes = response.content
