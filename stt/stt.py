@@ -1,87 +1,160 @@
-import whisper
-import sounddevice as sd
-import numpy as np
+import tempfile
 import CONSTANTS
 from utils.utils import open_yaml
 import threading
-import queue
-import readchar  # pip install readchar
+import pyaudio
+import readchar
+from openai import OpenAI
+import dotenv
+import os
+import subprocess
+import io
+
+dotenv.load_dotenv()
 
 class STT():
     def __init__(self):
         self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'STT')
-        self.model = whisper.load_model(self.config.get('model_size', 'base.en'))
+        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
         self.sample_rate = self.config.get('sample_rate', 16000)
         self.channels = self.config.get('channels', 1)
-        self.dtype = 'float32'
+        self.format = pyaudio.paInt16
+        self.chunk = 1024
         self.recording = False
-        self.audio_chunks = []
-    
-    def transcribe(self, audio):
-        """Transcribe audio data using the loaded whisper model"""
-        result = self.model.transcribe(audio)
-        return result["text"]
-    
-    def audio_callback(self, indata, frames, time, status):
-        """Callback for audio recording"""
-        if self.recording:
-            self.audio_chunks.append(indata.copy())
+        
+        # Initialize PyAudio in try/except to handle potential initialization errors
+        try:
+            self.p = pyaudio.PyAudio()
+        except Exception as e:
+            print(f"Warning: Could not initialize PyAudio: {e}")
+            self.p = None
+        
+    def transcribe(self, audio_file_path):
+        """Transcribe audio file using OpenAI's API"""
+        with open(audio_file_path, 'rb') as audio_file:
+            transcription = self.client.audio.transcriptions.create(
+                model=self.config['model'],
+                file=audio_file,
+                prompt=self.config['prompt']
+            )
+        
+        return transcription.text
     
     def record_with_key(self, key=' '):
-        """Record while a key is held down using a simple polling approach"""
+        """Record while a key is held down and encode directly to MP3"""
+        # Check if PyAudio was initialized successfully
+        if self.p is None:
+            print("Error: PyAudio is not initialized")
+            return None
+            
         print(f"Press and hold '{key}' to start recording. Release to stop.")
         print("Press any other key to cancel.")
         
-        self.recording = False
-        self.audio_chunks = []
+        # Create a temporary file for the MP3
+        temp_file = tempfile.NamedTemporaryFile(suffix='.mp3', delete=False)
+        temp_file_path = temp_file.name
+        temp_file.close()
         
-        # Start audio stream
-        stream = sd.InputStream(
-            samplerate=self.sample_rate,
-            channels=self.channels,
-            dtype=self.dtype,
-            callback=self.audio_callback
-        )
+        # Wait for key press
+        pressed_key = readchar.readkey()
+        if pressed_key != key:
+            print("Recording canceled")
+            os.unlink(temp_file_path)
+            return None
         
-        # Start the stream
-        with stream:
-            # Wait for key press
-            pressed_key = readchar.readkey()
-            if pressed_key != key:
-                print("Recording canceled")
-                return np.array([])
+        # Set up FFmpeg process for direct MP3 encoding
+        ffmpeg_cmd = [
+            'ffmpeg',
+            '-f', 's16le',            # Input format (16-bit PCM)
+            '-ar', str(self.sample_rate),  # Sample rate
+            '-ac', str(self.channels),     # Channels
+            '-i', 'pipe:0',           # Read from stdin
+            '-c:a', 'libmp3lame',     # MP3 codec
+            '-b:a', '128k',           # Bitrate
+            '-y',                     # Overwrite output
+            temp_file_path            # Output file
+        ]
+        
+        try:
+            ffmpeg_process = subprocess.Popen(
+                ffmpeg_cmd, 
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
             
             # Start recording
+            stream = self.p.open(
+                format=self.format,
+                channels=self.channels,
+                rate=self.sample_rate,
+                input=True,
+                frames_per_buffer=self.chunk
+            )
+            
             self.recording = True
             print("Recording started... Release key to stop.")
+            
+            # Record in a separate thread
+            def record_thread():
+                while self.recording:
+                    data = stream.read(self.chunk, exception_on_overflow=False)
+                    ffmpeg_process.stdin.write(data)
+            
+            thread = threading.Thread(target=record_thread)
+            thread.start()
             
             # Wait for key release
             readchar.readkey()
             self.recording = False
+            thread.join()
+            
             print("Recording stopped")
-        
-        # Process the recorded audio
-        if not self.audio_chunks:
-            print("No audio recorded")
-            return np.array([])
-        
-        # Combine audio chunks
-        audio_data = np.concatenate(self.audio_chunks, axis=0)
-        
-        # Convert to mono if needed
-        if self.channels > 1:
-            audio_data = np.mean(audio_data, axis=1)
-        
-        return audio_data.flatten()
+            
+            # Clean up
+            stream.stop_stream()
+            stream.close()
+            ffmpeg_process.stdin.close()
+            ffmpeg_process.wait()
+            
+            # Check if the file exists and has content
+            if os.path.exists(temp_file_path) and os.path.getsize(temp_file_path) > 0:
+                return temp_file_path
+            else:
+                print("No audio recorded or encoding failed")
+                os.unlink(temp_file_path)
+                return None
+                
+        except Exception as e:
+            print(f"Error during recording: {e}")
+            if 'ffmpeg_process' in locals():
+                try:
+                    ffmpeg_process.terminate()
+                except:
+                    pass
+            os.unlink(temp_file_path)
+            return None
     
     def listen_and_transcribe_key(self, key=' '):
         """Record audio while key is pressed and transcribe it"""
-        audio_data = self.record_with_key(key)
-        if len(audio_data) > 0:
-            text = self.transcribe(audio_data)
-            return text
+        audio_file_path = self.record_with_key(key)
+        if audio_file_path:
+            try:
+                text = self.transcribe(audio_file_path)
+                return text
+            finally:
+                # Clean up the temporary file
+                os.unlink(audio_file_path)
         else:
             return "No audio recorded"
+    
+    def __del__(self):
+        """Clean up PyAudio when the object is destroyed"""
+        try:
+            if hasattr(self, 'p') and self.p is not None:
+                self.p.terminate()
+        except Exception as e:
+            print(f"Warning: Error while terminating PyAudio: {e}")
 
 # Usage example
 if __name__ == "__main__":

@@ -16,8 +16,21 @@ LLM:
 
 TTS:
   device: 15
+  method: openai
+  voice': coral
+  model': gpt-4o-mini-tts
+  response_format: mp3 
+  speed: 0.95
+
+  # if kokoro
+        #   'method': 'kokoro',
+        # 'lang_code': 'a',
+        # 'voice': 'af_heart'
 
 STT:
-  model_size: turbo
+  model_size: base.en
   sample_rate: 16000
   channels: 1
+  prompt: | 
+    Make accurate transcritpions of the audio.
+  model: gpt-4o-mini-transcribe

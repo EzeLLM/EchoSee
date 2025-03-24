@@ -7,15 +7,15 @@ from utils.utils import *
 from stt.stt import STT
 def main():
     # Initialize TTS
-    tts = TTS(lang_code='a', voice='af_heart')
+    tts = TTS()
     print("Voice Assistant started! Press Enter after typing your question (type 'quit' to exit)")
     am = AgentManager()
     stt = STT()
     while True:
         try:
             # Get user input
-            # user_query = stt.listen_and_transcribe_key()
-            user_query = input("You: ")
+            user_query = stt.listen_and_transcribe_key()
+            # user_query = input("You: ")
             # Check for quit command
             if user_query.lower() == 'quit':
                 print("Goodbye!")
