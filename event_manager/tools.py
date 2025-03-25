@@ -44,7 +44,7 @@ def set_alarm_at_specific_time(time: str) -> bool:
     except ValueError:
         return False
 
-    state = em.add_event(event_time=event_time, callback=alarm)
+    state = em.add_event(event_time=event_time, callback=alarm.alarm)
     if state != -1:
         event_ids.append(state)
         return True
@@ -82,15 +82,19 @@ def set_alarm_with_time_delta(delta: str) -> bool:
     )
     
     event_time = datetime.now() + delta_td
-    state = em.add_event(event_time=event_time, callback=alarm)
+    state = em.add_event(event_time=event_time, callback=alarm.alarm)
     
     if state != -1:
         event_ids.append(state)
         return True
     return False
 
-
-
+@tool
+def stop_alarm() -> None:
+    """
+    Stops the currently active alarm
+    """
+    alarm.stop_alarm()
 
 
 tools = [set_alarm_at_specific_time]
@@ -101,3 +105,4 @@ if __name__ == "__main__":
     print(set_alarm_with_time_delta.invoke({"delta": "00:00:00:05"}))
     import time
     time.sleep(10)
+    stop_alarm()
