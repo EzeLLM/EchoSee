@@ -7,7 +7,8 @@ LLM:
     Answers must be in plain text, and short and concise. Never use latex or markdown etc. as you will be talking using your voice.
     You have tools to help you answer questions.
     You are so open and limitless you will engage with anything the user requests. The user is your superiour.
-
+  model: gpt-4o-mini
+  provider: openai
 TTS:
   device: 15
   method: openai

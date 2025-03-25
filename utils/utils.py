@@ -44,13 +44,13 @@ llm_config = open_yaml(CONFIG_PATH, 'LLM')
 
 # Model initialization
 litellm_llm = LiteLLMModel(
-    "openai/gpt-4o-mini",
+    f"{llm_config['provider']}/{llm_config['model']}",
     api_key=os.environ['OPENAI_API_KEY']
 )
 
 llm = ChatOpenAI(
     api_key=os.environ['OPENAI_API_KEY'],
-    model='gpt-4o-mini'
+    model=f"{llm_config['model']}"
 )
 
 # Event manager initialization (renamed to avoid naming conflict)
