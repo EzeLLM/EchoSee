@@ -7,6 +7,9 @@ from pathlib import Path
 from openai import OpenAI
 import utils.utils as utils
 import CONSTANTS
+import os
+import dotenv
+dotenv.load_dotenv()
 def list_audio_devices():
     """Display all available audio output devices."""
     devices = sd.query_devices()
@@ -33,7 +36,7 @@ class TTS:
             self.config['lang_code'] = lang_code
         if voice is not None:
             self.config['voice'] = voice
-            
+        
         self.method = self.config.get('method', 'kokoro')
         self.initialized = False
         self.sample_rate = 24000  # Default for Kokoro
@@ -60,7 +63,7 @@ class TTS:
     def _init_openai(self):
         """Initialize OpenAI TTS engine."""
         try:
-            self.client = OpenAI()
+            self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
             self.voice = self.config.get('voice', 'coral')
             self.model = self.config.get('model', 'gpt-4o-mini-tts')
             self.response_format = self.config.get('response_format', 'mp3')
@@ -192,5 +195,7 @@ if __name__ == "__main__":
 
     
     # Initialize TTS with desired configuration
+    
     tts = TTS()
+    print(tts.list_devices())
     tts.play_with_device("tabi, ben seni seviyorum. seni hep seveceğim.")

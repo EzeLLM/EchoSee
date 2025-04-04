@@ -10,7 +10,7 @@ LLM:
   model: gpt-4o-mini
   provider: openai
 TTS:
-  device: 15
+  device: 2
   method: openai
   voice': coral
   model': gpt-4o-mini-tts
@@ -23,16 +23,15 @@ TTS:
 #  voice: af_heart
 
 STT:
-  model_size: base.en
   sample_rate: 16000
   channels: 1
   prompt: | 
-    Make accurate transcritpions of the audio.
+    Make accurate transcritpions of the audio. Also structure the transcription well if there are multiple speakers. Describe the tone of the speaker.
   model: gpt-4o-mini-transcribe
 
 
 AgentManager:
-  clear_time: 30
+  clear_time: 30 # time to clear the conversation history if idle in minutes
 
 callbacks:
   alarm:

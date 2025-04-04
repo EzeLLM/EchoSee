@@ -69,7 +69,7 @@ def search(query:str, time_range:str,return_raw_results) -> str:
         search_params['include_answer'] = 'basic'
 
     # Execute search
-    client = TavilyClient(os.environ['TAVILY'])
+    client = TavilyClient(os.environ['TAVILY_API_KEY'])
     print(f"Searching for '{query}' (time range: '{time_range}'), return raw: {return_raw_results}")
     
     response = client.search(**search_params)
