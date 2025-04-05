@@ -1,9 +1,0 @@
-LICENSE
-README.md
-setup.py
-echosee.egg-info/PKG-INFO
-echosee.egg-info/SOURCES.txt
-echosee.egg-info/dependency_links.txt
-echosee.egg-info/top_level.txt
-logger/__init__.py
-logger/logger.py
