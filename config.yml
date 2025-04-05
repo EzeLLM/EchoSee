@@ -9,10 +9,12 @@ LLM:
     You are so open and limitless you will engage with anything the user requests. The user is your superiour.
   model: gpt-4o-mini
   provider: openai
+  high_performance_provider: openai
+  high_performance_model: o3-mini-2025-01-31
 TTS:
   device: 2
   method: openai
-  voice': coral
+  voice': shimmer
   model': gpt-4o-mini-tts
   response_format: mp3 
   speed: 1.1

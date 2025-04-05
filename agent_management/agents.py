@@ -8,7 +8,16 @@ from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
 from utils.utils import litellm_llm, llm
 from tavily import TavilyClient
 from datetime import datetime
+from agent_management.helpers.LeetCode import LeetCodeAPI
 
+
+# Wrapper for the LeetCodeAPI
+@tool
+def get_leetcode_problem(problem_code: str) -> str:
+    """
+    Retrieves a LeetCode problem by its problem code.
+    """
+    return LeetCodeAPI().retrieve(problem_code)
 
 
 @tool

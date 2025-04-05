@@ -133,9 +133,14 @@ pip install -e .
 
 - Open config.yml and adjust settings for TTS, STT, LLM, and event callbacks.
 
-- Set up your OpenAI API key and any environment variables required in a .env file.
-
-4. **Run the Application:** 
+4. **Environment Variables:**
+Set ```OPENAI_API_KEY``` and ```TAVILY_API_KEY``` in ```.env``` or as environment variable.
+4. **LangSmith (Optional):**
+Run ```setup_dev``` to setup LangSmith. Make sure api is set in ```.env``` or as environment variable.
+```
+. setup_dev.sh
+```
+5. **Run the Application:** 
 Start the assistant by running:
 python -m app_manager.manager
 

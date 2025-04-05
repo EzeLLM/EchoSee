@@ -7,7 +7,7 @@ import dotenv
 import atexit
 from langchain_openai import ChatOpenAI
 from smolagents import LiteLLMModel
-
+from langchain_deepseek import ChatDeepSeek
 # Import from local modules using explicit relative or absolute imports
 from event_manager.event_manager import EventManager  # Assuming proper package structure
 
@@ -48,10 +48,28 @@ litellm_llm = LiteLLMModel(
     api_key=os.environ['OPENAI_API_KEY']
 )
 
-llm = ChatOpenAI(
-    api_key=os.environ['OPENAI_API_KEY'],
-    model=f"{llm_config['model']}"
-)
+if llm_config['provider'] == 'openai':
+    llm = ChatOpenAI(
+        api_key=os.environ['OPENAI_API_KEY'],
+        model=f"{llm_config['model']}"
+    )
+else:
+    raise ValueError(f"Invalid provider: {llm_config['provider']}")
+
+
+
+if llm_config['high_performance_provider'] == 'deepseek':
+    high_performance_llm = ChatDeepSeek(
+        api_key=os.environ['DEEPSEEK_API_KEY'],
+        model=f"{llm_config['high_performance_model']}"
+    )
+elif llm_config['high_performance_provider'] == 'openai':
+    high_performance_llm = ChatOpenAI(
+        api_key=os.environ['OPENAI_API_KEY'],
+        model=f"{llm_config['high_performance_model']}"
+    )
+else:
+    raise ValueError(f"Invalid provider: {llm_config['high_performance_provider']}")
 
 # Event manager initialization (renamed to avoid naming conflict)
 event_manager_instance = EventManager()
