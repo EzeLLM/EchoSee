@@ -134,7 +134,7 @@ pip install -e .
 - Open config.yml and adjust settings for TTS, STT, LLM, and event callbacks.
 
 4. **Environment Variables:**
-Set ```OPENAI_API_KEY``` and ```TAVILY_API_KEY``` in ```.env``` or as environment variable.
+Set ```OPENAI_API_KEY``` , ```TAVILY_API_KEY``` , and (optionally) ```DeepSeek``` API keys in ```.env``` or as environment variable.
 4. **LangSmith (Optional):**
 Run ```setup_dev``` to setup LangSmith. Make sure api is set in ```.env``` or as environment variable.
 ```

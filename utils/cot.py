@@ -2,12 +2,13 @@ import logger.logger as logger
 from utils import utils
 import CONSTANTS as CONST
 from typing import Dict, Any, Optional, Union
+from langchain.prompts import PromptTemplate
 log = logger.Logger("llm_chain")
 
 class BaseLLMChain:
     """Base class for LLM chains to inherit from."""
     def __init__(self):
-        pass
+        self.prompt_template = None
     
     def run(self, prompt: str, **kwargs) -> str:
         """Run the chain on a prompt and input."""
@@ -15,11 +16,14 @@ class BaseLLMChain:
 
     def _format_prompt(self, prompt: str, **kwargs) -> str:
         """Format the prompt with the inputs."""
+        if self.prompt_template:
+            kwargs['prompt'] = prompt
+            return self.prompt_template.format(**kwargs)
         return prompt
 
 class COTChain(BaseLLMChain):
     """A customized LLM chain that reuses COT functionality."""
-    def __init__(self, provider: str, model_kwargs: Optional[Dict[str, Any]] = None):
+    def __init__(self, provider: str=utils.llm_config.get("high_performance_provider"), model_kwargs: Optional[Dict[str, Any]] = None):
         super().__init__()
         self.provider = provider
         self.llm = utils.high_performance_llm
@@ -104,32 +108,54 @@ class COTChain(BaseLLMChain):
 
 # Example use with additional features like templating
 class TemplatedCOTChain(COTChain):
-    """LLM chain with templating capabilities."""
-    def __init__(self, provider: str, template: str = "", model_kwargs=None):
+    """LLM chain with templating capabilities using LangChain's PromptTemplate."""
+    def __init__(self, provider: str=utils.llm_config.get("high_performance_provider"), template: str = "", model_kwargs=None):
         super().__init__(provider, model_kwargs)
-        self.template = template
+        self.prompt_template = PromptTemplate.from_template(template) if template else None
         
     def _format_prompt(self, prompt: str, **kwargs) -> str:
-        """Format the prompt using the template."""
-        if not self.template:
+        """Format the prompt using LangChain's PromptTemplate."""
+        if not self.prompt_template:
             return prompt
             
-        formatted_template = self.template.replace("{prompt}", prompt)
-        # Replace any other template variables with values from kwargs
-        for key, value in kwargs.items():
-            formatted_template = formatted_template.replace(f"{{{key}}}", str(value))
-            
-        return formatted_template
+        # Add the prompt to kwargs if it's not already there
+        kwargs['prompt'] = prompt
+        return self.prompt_template.format(**kwargs)
 
 
 if __name__ == "__main__":
-    # Example usage
+    # Example usage with basic chain
     chain = COTChain(CONST.PROVIDER_OPENAI)
-    print(chain.run("What is the capital of France?", parse=True))
+    print("Basic chain response:", chain.run("What is the capital of France?", parse=True))
     
-    # Example with template
+    # Example with template using multiple variables
     template_chain = TemplatedCOTChain(
         CONST.PROVIDER_OPENAI,
-        template="Where is {prompt}"
+        template="""Given the following context:
+        Country: {country}
+        Question: {prompt}
+        
+        Please provide a detailed answer."""
     )
-    print(template_chain.run("What is the capital of Italy?", parse=True))
+    print("\nTemplated chain response:", 
+          template_chain.run(
+              "What is the capital?", 
+              country="Italy",
+              parse=True
+          ))
+    
+    # Example with template using conditional formatting
+    template_chain2 = TemplatedCOTChain(
+        CONST.PROVIDER_OPENAI,
+        template="""Answer the following question about {topic}:
+        {prompt}
+        
+        {format_instruction}"""
+    )
+    print("\nFormatted chain response:", 
+          template_chain2.run(
+              "What are the main features?",
+              topic="Python programming",
+              format_instruction="Please provide a bullet-point list.",
+              parse=True
+          ))

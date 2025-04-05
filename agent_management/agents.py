@@ -4,20 +4,12 @@ import dotenv
 dotenv.load_dotenv()
 from logger import logger
 logger = logger.Logger('agent')
-from smolagents import CodeAgent, DuckDuckGoSearchTool, HfApiModel
 from utils.utils import litellm_llm, llm
 from tavily import TavilyClient
 from datetime import datetime
-from agent_management.helpers.LeetCode import LeetCodeAPI
+from agent_management.helpers.leetcode.agent import client as leetcode_client
 
 
-# Wrapper for the LeetCodeAPI
-@tool
-def get_leetcode_problem(problem_code: str) -> str:
-    """
-    Retrieves a LeetCode problem by its problem code.
-    """
-    return LeetCodeAPI().retrieve(problem_code)
 
 
 @tool
@@ -105,18 +97,28 @@ def search(query:str, time_range:str,return_raw_results) -> str:
 #     return exec(code)
 
 
+# @tool
+# def code_agent(task:str) -> str:
+#     """
+#     Uses a code agent to solve the task. Should be used for complex tasks that require multiple steps or code execution. Do not use this tool for simple tasks.
+#     Parameters:
+#         task: The task to solve.
+#     Returns:
+#         The solution to the task.
+#     """
+#     agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=litellm_llm)
+#     return agent.run(task)
+
 @tool
-def code_agent(task:str) -> str:
+def leetcode_agent(task:str) -> str:
     """
-    Uses a code agent to solve the task. Should be used for complex tasks that require multiple steps or code execution. Do not use this tool for simple tasks.
+    LeetCode agent to solve problems or provide hints about them. 
     Parameters:
         task: The task to solve.
     Returns:
-        The solution to the task.
+        The solution to the task with the problem context.
     """
-    agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=litellm_llm)
-    return agent.run(task)
-
+    return leetcode_client.run(task)
 
 if __name__ == '__main__':
     # Test the search function

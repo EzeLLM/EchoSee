@@ -16,7 +16,7 @@ class AgentManager:
     def __init__(self):
         # Set up tools
         self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'AgentManager')
-        self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,event_tools.stop_alarm]
+        self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,event_tools.stop_alarm, agents.leetcode_agent]
         
         # Initialize conversation history
         self.conversation_history: List[Dict[str, List[BaseMessage]]] = []
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     agent_manager = AgentManager()
     
     # Test with a sample message
-    response_messages = agent_manager.process_message("hey babe set an alarm to run in 1 minute")
+    response_messages = agent_manager.process_message("hey bro how are you doing, can you help me with leetcode problem 104. i just need some hints no need to solve it")
     for m in response_messages:
         m.pretty_print()
     
