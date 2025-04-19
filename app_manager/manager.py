@@ -14,8 +14,8 @@ def main():
     while True:
         try:
             # Get user input
-            user_query = stt.listen_and_transcribe_key()
-            # user_query = input("You: ")
+            # user_query = stt.listen_and_transcribe_key()
+            user_query = input("You: ")
             # Check for quit command
             if user_query.lower() == 'quit':
                 print("Goodbye!")
@@ -29,7 +29,7 @@ def main():
             print(f"\nAssistant: {assistant_message}")
             
             # Convert response to speech
-            tts.play_with_device(assistant_message, device=tts_config['device'])
+            tts.play_with_device(assistant_message)
             
         except Exception as e:
             print(f"An error occurred: {e}")
