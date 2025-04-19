@@ -52,12 +52,32 @@ class ChatWindow extends StatelessWidget {
           // Messages area
           Expanded(
             child: Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 border: Border.all(color: AppTheme.sage),
               ),
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: const SingleChildScrollView(
-                child: Text('Messages will appear here'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Messages will appear here',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'This is a sample message to demonstrate the width and spacing of the chat window.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -74,10 +94,15 @@ class ChatWindow extends StatelessWidget {
                       color: AppTheme.cream.withOpacity(0.4),
                       letterSpacing: 1,
                     ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                   ),
                   style: const TextStyle(
                     color: AppTheme.cream,
                     fontWeight: FontWeight.w300,
+                    fontSize: 16,
                   ),
                 ),
               ),
