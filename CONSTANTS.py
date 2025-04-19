@@ -1,4 +1,4 @@
-CONFIG_PATH="/Users/ezelbayraktar/Development/Projects/EchoSee/config.yml"
+CONFIG_PATH="config.yml"
 COT_THINK_TAG = "<think>"
 COT_END_TAG = "<think>"
 PROVIDER_DEEPSEEK = "deepseek"
