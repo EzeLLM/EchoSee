@@ -6,7 +6,7 @@ from langchain.chains.router import MultiPromptChain
 from utils.utils import llm
 from utils.cot import *
 from typing import Literal
-from agent_management.helpers.leetcode.LeetCodeAPI import client
+from agent_management.helpers.LeetCode.LeetCodeAPI import client
 # Dummy tools (same as before)
 def get_problem_context(problem_code):
     """Dummy tool to get problem context"""
@@ -213,6 +213,6 @@ class LeetCodeAgent():
         return str(valid_numbers[0]) if valid_numbers else None
 
 # Usage examples
-agent = LeetCodeAgent()
+# agent = LeetCodeAgent()
 
-print(agent.run("im working on a leetcode problem, problem 23rd exactly, can you guide me through it"))
+# print(agent.run("im working on a leetcode problem, problem 23rd exactly, can you guide me through it"))
