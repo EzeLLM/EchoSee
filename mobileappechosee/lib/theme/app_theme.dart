@@ -46,13 +46,16 @@ class AppTheme {
 
   static const inputDecoration = InputDecoration(
     border: OutlineInputBorder(
-      borderSide: BorderSide(color: sage),
+      borderSide: BorderSide(color: sage, width: 2.0),
+      borderRadius: BorderRadius.zero,
     ),
     enabledBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: sage),
+      borderSide: BorderSide(color: sage, width: 2.0),
+      borderRadius: BorderRadius.zero,
     ),
     focusedBorder: OutlineInputBorder(
-      borderSide: BorderSide(color: cream),
+      borderSide: BorderSide(color: cream, width: 2.0),
+      borderRadius: BorderRadius.zero,
     ),
     filled: true,
     fillColor: darkGreen,
