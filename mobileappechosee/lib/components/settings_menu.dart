@@ -25,6 +25,7 @@ class SettingsMenu extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
           Row(
@@ -46,32 +47,30 @@ class SettingsMenu extends StatelessWidget {
           ),
           const SizedBox(height: 40),
           // Settings options
-          _buildSettingsOption('theme'),
-          _buildSettingsOption('notifications'),
-          _buildSettingsOption('text size'),
-          _buildSettingsOption('language'),
+          Expanded(
+            child: Column(
+              children: [
+                _buildSettingsButton('theme'),
+                const SizedBox(height: 16),
+                _buildSettingsButton('notifications'),
+                const SizedBox(height: 16),
+                _buildSettingsButton('text size'),
+                const SizedBox(height: 16),
+                _buildSettingsButton('language'),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsOption(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: AppTheme.sage.withOpacity(0.3),
-          ),
-        ),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w300,
-          letterSpacing: 1,
-        ),
-      ),
+  Widget _buildSettingsButton(String text) {
+    return CustomButton(
+      text: text,
+      onPressed: () {
+        // Handle setting option press
+      },
     );
   }
 } 

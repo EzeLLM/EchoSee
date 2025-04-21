@@ -175,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 top: 0,
                 right: 0,
                 bottom: 0,
-                width: MediaQuery.of(context).size.width * 0.8,
+                left: 0,
                 child: SettingsMenu(
                   onClose: _toggleSettings,
                 ),
@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 top: 0,
                 left: 0,
                 bottom: 0,
-                width: MediaQuery.of(context).size.width * 0.8,
+                right: 0,
                 child: HistoryPanel(
                   onClose: _toggleHistory,
                 ),

@@ -25,6 +25,7 @@ class HistoryPanel extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header
           Row(
@@ -49,9 +50,11 @@ class HistoryPanel extends StatelessWidget {
           Expanded(
             child: ListView(
               children: [
-                _buildHistoryItem('conversation 1'),
-                _buildHistoryItem('conversation 2'),
-                _buildHistoryItem('conversation 3'),
+                _buildHistoryButton('conversation 1'),
+                const SizedBox(height: 16),
+                _buildHistoryButton('conversation 2'),
+                const SizedBox(height: 16),
+                _buildHistoryButton('conversation 3'),
               ],
             ),
           ),
@@ -60,19 +63,12 @@ class HistoryPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildHistoryItem(String text) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppTheme.sage),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w300,
-        ),
-      ),
+  Widget _buildHistoryButton(String text) {
+    return CustomButton(
+      text: text,
+      onPressed: () {
+        // Handle history item press
+      },
     );
   }
 } 
