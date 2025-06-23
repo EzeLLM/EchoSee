@@ -58,3 +58,4 @@ yarn-error.log*
 *.env.*.local
 db.json
 src/lib/db.json
+src/lib/notifications.db
