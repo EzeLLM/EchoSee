@@ -1,0 +1,24 @@
+{
+  "name": "EchoNoti",
+  "short_name": "EchoNoti",
+  "description": "Your personal LLM notification hub.",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#9500ff",
+  "background_color": "#121212",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}
