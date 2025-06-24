@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { addNotification, getNotifications } from '@/lib/db';
 
 export async function GET() {
@@ -29,6 +30,10 @@ export async function POST(request: Request) {
     };
 
     const newNotification = await addNotification(notificationData);
+
+    // Revalidate the notifications pages to update stale data
+    revalidatePath('/');
+    revalidatePath('/bookmarked');
 
     return NextResponse.json(newNotification, { status: 201 });
   } catch (error) {
