@@ -18,6 +18,17 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -88,18 +99,77 @@ export function NotificationCard({ notification }: { notification: Notification 
           </DialogTrigger>
           
           <div className="absolute top-4 right-4 flex items-center space-x-0">
-            <form action={toggleBookmarkStatus}>
-              <input type="hidden" name="id" value={notification.id} />
-              <Button variant="ghost" size="icon" className="h-8 w-8" type="submit" aria-label={notification.bookmarked ? 'Remove bookmark' : 'Add bookmark'}>
-                <Bookmark className={cn("h-4 w-4", notification.bookmarked && "fill-primary text-primary")} />
-              </Button>
-            </form>
-            <form action={deleteNotification}>
-               <input type="hidden" name="id" value={notification.id} />
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" type="submit" aria-label="Delete notification">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  aria-label={notification.bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                >
+                  <Bookmark
+                    className={cn(
+                      "h-4 w-4",
+                      notification.bookmarked && "fill-primary text-primary"
+                    )}
+                  />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {notification.bookmarked
+                      ? 'Remove bookmark?'
+                      : 'Add bookmark?'}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {notification.bookmarked
+                      ? 'This will remove the bookmark from this notification.'
+                      : 'This will bookmark this notification.'}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <form action={toggleBookmarkStatus}>
+                    <input type="hidden" name="id" value={notification.id} />
+                    <AlertDialogAction type="submit">Confirm</AlertDialogAction>
+                  </form>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                  aria-label="Delete notification"
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-            </form>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to delete this?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <form action={deleteNotification}>
+                    <input type="hidden" name="id" value={notification.id} />
+                    <AlertDialogAction
+                      type="submit"
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/80"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </form>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
@@ -119,7 +189,7 @@ export function NotificationCard({ notification }: { notification: Notification 
             </ReactMarkdown>
         </div>
         <DialogFooter>
-            <Button onClick={() => setIsOpen(false)}>Close</Button>
+            <Button onClick={() => handleOpenChange(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
