@@ -56,5 +56,5 @@ yarn-error.log*
 .DS_Store
 *.env.local
 *.env.*.local
-db.json
-src/lib/db.json
+src/lib/notifications.db
+src/lib/notifications.db-*

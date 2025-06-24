@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server';
-import { addNotification } from '@/lib/db';
+import { revalidatePath } from 'next/cache';
+import { addNotification, getNotifications } from '@/lib/db';
+
+export async function GET() {
+  try {
+    const notifications = await getNotifications();
+    return NextResponse.json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -19,6 +30,10 @@ export async function POST(request: Request) {
     };
 
     const newNotification = await addNotification(notificationData);
+
+    // Revalidate the notifications pages to update stale data
+    revalidatePath('/');
+    revalidatePath('/bookmarked');
 
     return NextResponse.json(newNotification, { status: 201 });
   } catch (error) {

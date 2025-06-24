@@ -4,6 +4,8 @@ import { Header } from "@/components/Header";
 import PwaRegistry from "@/components/PwaRegistry";
 import "./globals.css";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "EchoNoti",
   description: "Your personal LLM notification hub.",
