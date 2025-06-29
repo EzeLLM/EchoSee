@@ -1,0 +1,27 @@
+<!-- icon.svg  (48 × 48, maskable-safe) -->
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none"
+     xmlns="http://www.w3.org/2000/svg">
+  <!-- full-bleed background -->
+  <rect width="48" height="48" rx="8"
+        fill="url(#bg)" />
+
+  <!-- notification “echo” mark (same geometry as before) -->
+  <path d="M32 16L4 44
+           M35 30H18
+           M40.48 24.48C42.73 22.23 44 19.17 44 15.99
+           C44 12.81 42.73 9.75 40.48 7.5
+           C38.23 5.25 35.17 3.98 31.99 3.98
+           C28.81 3.98 25.75 5.25 23.5 7.5
+           L10 21V38H27L40.48 24.48Z"
+        stroke="#FFFFFF"
+        stroke-width="4.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="bg" x1="24" y1="0" x2="24" y2="48"
+                    gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#9500FF"/>
+      <stop offset="100%" stop-color="#00E5FF" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+</svg>

@@ -23,23 +23,9 @@ EchoSee is a cutting-edge assistant pipeline designed to replace traditional rul
 8. [Contributing](#contributing)
 9. [License](#license)
 ---
-## ✨ Latest Feature: LeetCode Integration ✨
+## ✨ Latest Feature: Echonoti ✨
 
-EchoSee now includes a powerful LeetCode assistant that helps you tackle coding challenges! This intelligent feature leverages AI to provide customized support for your programming practice sessions.
-
-### LeetCode Features:
-- **Problem Retrieval:** Get detailed problem descriptions directly from LeetCode by specifying the problem number.
-- **Hint Generation:** Request targeted hints that guide your thinking without revealing the complete solution.
-- **Step-by-Step Guides:** Receive conversational explanations of solution approaches with time and space complexity analysis.
-- **Adaptive Assistance:** The system automatically classifies your request to provide the appropriate level of help.
-
-### Using the LeetCode Feature:
-Simply ask EchoSee about a LeetCode problem by referencing its number:
-- "Give me a hint for LeetCode problem 141"
-- "I need guidance on solving LeetCode number 23"
-- "Explain the approach for problem 104 on LeetCode"
-
-The LeetCode agent will detect the problem number, retrieve the problem details, and provide the appropriate level of assistance based on your request.
+Echonoti is a companion web progressive  companion progressive web app that lets the agent send notification to your phone, computer, or even smart tv. 
 ---
 
 ## Overview

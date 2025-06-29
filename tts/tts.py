@@ -181,7 +181,22 @@ class TTS:
         return [filename]
 
     def play_with_device(self, text, device=None, voice=None, speed=None, split_pattern=r'\n+'):
-        """Play audio through specific output device."""
+        """Play audio through a specific output device.
+
+        If ``device`` is ``None`` (default), the current system default output
+        device is used, so the caller doesn't need to specify it manually.
+        """
+
+        # Resolve to system default output device when none is provided
+        if device is None:
+            # ``sd.default.device`` can be a single int or a tuple ``(input, output)``
+            try:
+                default_device = sd.default.device
+                device = default_device[1] if isinstance(default_device, tuple) else default_device
+            except Exception:
+                # Fallback to -1 which lets sounddevice decide the default
+                device = -1
+
         audio_segments = self.generate(text, voice, speed, split_pattern)
         for audio in audio_segments:
             sd.play(audio, self.sample_rate, device=device)
