@@ -8,6 +8,7 @@ from utils.utils import litellm_llm, llm
 from tavily import TavilyClient
 from datetime import datetime
 from agent_management.helpers.leetcode.agent import client as leetcode_client
+from agent_management.helpers.search.SearchClient import search_agent as _robust_search_agent
 
 
 
@@ -39,6 +40,7 @@ def search(query:str, time_range:str,return_raw_results) -> str:
     
     This function connects to the Tavily search service to retrieve up-to-date information
     about recent events, news, or other current topics.
+    Should be used for simple tasks like 'what is the weather in tokyo' or 'what is the capital of france' etc. but not for complex tasks like 'what is the current leader of the christian world' or 'what is the latest news on the war in ukraine' etc.
     
     Parameters:
         query: The search query to submit to the web search engine.
@@ -119,6 +121,35 @@ def leetcode_agent(task:str) -> str:
         The solution to the task with the problem context.
     """
     return leetcode_client.run(task)
+
+# ---------------------------------------------------------------------------
+# Diversified fact-checking search agent (see helpers/search/SearchClient.py)
+# ---------------------------------------------------------------------------
+
+
+@tool
+def robust_search(query: str, max_queries: int = 3) -> str:
+    """
+    Perform a diversified web search to gather evidence from multiple sources
+    and produce a concise, fact-checked answer.
+
+    Should be used if the user asks for 'detailed search' or tells you to 'gather everything you can find' etc.
+    The agent should not be used for simple tasks like 'what is the weather in tokyo' or 'what is the capital of france' etc. but for querries like 'what is the current leader of the christian world' or 'what is the latest news on the war in ukraine' etc.
+
+    This agent:
+        1. Generates several alternative search queries using the standard LLM.
+        2. Executes those queries via Tavily to obtain raw snippets.
+        3. Synthesises the snippets with a high-performance LLM.
+
+    Parameters:
+        query:        The user question or topic to investigate.
+        max_queries:  Maximum number of diversified search queries to run.
+
+    Returns:
+        A short answer that cites sources inline where possible.
+    """
+
+    return _robust_search_agent(query, max_queries)
 
 if __name__ == '__main__':
     # Test the search function
