@@ -191,7 +191,7 @@ class LeetCodeAgent():
         result = router_chain.run(query=query, context=context)
         return result.strip().lower()  # Normalize output
 
-    def extract_hint(self, context: str) -> str:
+    def extract_hint(self, context: str, query: str) -> str:
         hint = hint_chain.run(context=context, query=query)
         return hint
     
@@ -211,8 +211,7 @@ class LeetCodeAgent():
         print(valid_numbers)
         print(text)
         return str(valid_numbers[0]) if valid_numbers else None
-
+if __name__ == "__main__":
 # Usage examples
-agent = LeetCodeAgent()
-
-print(agent.run("im working on a leetcode problem, problem 23rd exactly, can you guide me through it"))
+    agent = LeetCodeAgent()
+    print(agent.run("im working on a leetcode problem, problem 23rd exactly, can you guide me through it"))
