@@ -7,7 +7,7 @@ logger = logger.Logger('agent')
 from utils.utils import litellm_llm, llm
 from tavily import TavilyClient
 from datetime import datetime
-from agent_management.helpers.LeetCode.agent import client as leetcode_client
+from agent_management.helpers.leetcode.agent import client as leetcode_client
 
 
 

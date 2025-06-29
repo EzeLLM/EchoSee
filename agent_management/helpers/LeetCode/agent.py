@@ -6,7 +6,7 @@ from langchain.chains.router import MultiPromptChain
 from utils.utils import llm
 from utils.cot import *
 from typing import Literal
-from agent_management.helpers.LeetCode.LeetCodeAPI import client
+from agent_management.helpers.leetcode.LeetCodeAPI import client
 # Dummy tools (same as before)
 def get_problem_context(problem_code):
     """Dummy tool to get problem context"""

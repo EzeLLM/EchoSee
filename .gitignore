@@ -34,4 +34,5 @@ echonoti/src/lib/db.json
 /config.yml
 /echonoti-firebase-adminsdk-fbsvc-960ad35e62.json
 /echonoti/src/lib/db.json
-/home/ezel/Development/EchoSee/echonoti/node_modules
+/echonoti/node_modules
+*.log

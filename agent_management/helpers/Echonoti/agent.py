@@ -58,6 +58,7 @@ def send_notification(headline: str, summary: str, content: str, notification_ty
     - Use appropriate notification types to help users prioritize and organize their notifications  
     - Keep headline and summary concise since they appear in notification previews
     - Include relevant context in content so the user understands the notification without needing additional information
+    - Try to use markdown formatting for the content to make it more readable on the device, avoid long paragraphs.
     """
     
 
