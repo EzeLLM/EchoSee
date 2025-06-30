@@ -14,8 +14,8 @@ def main():
     while True:
         try:
             # Get user input
-            # user_query = stt.listen_and_transcribe_key()
-            user_query = input("You: ")
+            user_query = stt.listen_and_transcribe_key()
+            # user_query = input("You: ")
             # Check for quit command
             if user_query.lower() == 'quit':
                 print("Goodbye!")
