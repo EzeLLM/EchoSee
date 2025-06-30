@@ -139,3 +139,7 @@ export async function deleteNotification(id: string): Promise<boolean> {
   return result.changes > 0;
 }
 
+export async function clearNotifications(): Promise<void> {
+  db.prepare('DELETE FROM notifications').run();
+}
+

@@ -212,3 +212,9 @@ We welcome contributions from the community! To contribute:
 This project is licensed under the terms detailed in the `LICENSE` file.
 
 **EchoSee** is continuously evolving. Your feedback and contributions are invaluable in making this assistant smarter, more efficient, and user-friendly. Enjoy using and developing **EchoSee**!
+
+## About & Support
+
+Find the repository on GitHub: <https://github.com/EzeLLM/EchoSee>
+
+For questions or support, please email [ezel964@icloud.com](mailto:ezel964@icloud.com).
