@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Rss } from "lucide-react";
 import { useT } from "@/hooks/use-i18n";
