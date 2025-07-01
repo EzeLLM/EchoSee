@@ -60,9 +60,15 @@ class SearchClient:
     def _generate_queries(self, user_query: str) -> List[str]:
         """Use embeddings + clustering to create diverse search queries, selecting the most representative query from each cluster."""
         pool_size = self.config.oversample_factor * self.max_queries
-        prompt = f"""Generate {pool_size} paraphrases of: '{user_query}'\nThe queries should be in the same language as the user query. The output me be a pure list, just querries where each querry is a line, no numerations no bullet points etc.
-        If they user querry includes multiple questions, then generate queries for each question, do not include multiple questions in the same query.
-        The querries are real search engine querries and should cover different aspects of the topic, or topics. So you should not just generate a cheap paraphrased version of the user query, but rather generate queries that are different from the user query and cover different aspects of the topic the user asked about. """
+        prompt = f"""Generate {pool_size} variations of: '{user_query}'
+        The variations must follow these rules STRICTLY:
+        - Variations must not be paraphrased versions of the user query, they must be different queries that cover different aspects of the topic the user asked about.
+        - The variations must be in the same language as the user query.
+        - The variations must be real search engine querries and should cover different aspects of the topic, or topics.
+        - The variations must be a pure list, just querries where each querry is a line, no numerations no bullet points etc.
+        - If they user querry includes multiple questions, then generate queries for each question, do not include multiple questions in the same query.
+        - The variations must be diverse, they must not be similar to each other.
+        """
         resp = self.base_llm.invoke([HumanMessage(content=prompt)])
         pool = [line.strip() for line in resp.content.splitlines() if line.strip()]
         print("The original queries are:")
