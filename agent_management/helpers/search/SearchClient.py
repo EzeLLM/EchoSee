@@ -47,14 +47,14 @@ class SearchClient:
         print(queries)
         print("--------------------------------")
         raw_results = asyncio.run(self._collect_search_results(queries, recent))
-        print(raw_results)
-        print("--------------------------------")
+        # print(raw_results)
+        # print("--------------------------------")
         snippets = self._extract_snippets(raw_results)
-        print(snippets)
-        print("--------------------------------")
+        # print(snippets)
+        # print("--------------------------------")
         filtered = self._filter_snippets(snippets, user_query)
-        print(filtered)
-        print("--------------------------------")
+        # print(filtered)
+        # print("--------------------------------")
         return self._summarise(user_query, filtered).strip()
 
     def _generate_queries(self, user_query: str) -> List[str]:
@@ -62,7 +62,7 @@ class SearchClient:
         pool_size = self.config.oversample_factor * self.max_queries
         prompt = f"""Generate {pool_size} paraphrases of: '{user_query}'\nThe queries should be in the same language as the user query. The output me be a pure list, just querries where each querry is a line, no numerations no bullet points etc.
         If they user querry includes multiple questions, then generate queries for each question, do not include multiple questions in the same query.
-        The querries are real search engine querries and should cover different aspects of the topic, or topics."""
+        The querries are real search engine querries and should cover different aspects of the topic, or topics. So you should not just generate a cheap paraphrased version of the user query, but rather generate queries that are different from the user query and cover different aspects of the topic the user asked about. """
         resp = self.base_llm.invoke([HumanMessage(content=prompt)])
         pool = [line.strip() for line in resp.content.splitlines() if line.strip()]
         print("The original queries are:")
