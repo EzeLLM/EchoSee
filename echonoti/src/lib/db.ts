@@ -19,40 +19,10 @@ db.exec(`
   );
 `);
 
-const initialNotifications: Notification[] = [
-  {
-    id: '1',
-    headline: 'System Update v2.1',
-    summary: 'A new system update is available. This includes performance improvements and bug fixes.',
-    content: `## System Update v2.1\n\nWe're excited to announce the release of System Update v2.1. This update focuses on improving the stability and performance of the application.\n\n### Key Changes:\n- **Performance:** Optimized data fetching, leading to 20% faster load times.\n- **Bug Fixes:** Resolved an issue where notifications would not sync correctly across devices.\n- **UI:** Minor visual adjustments for a cleaner look.`,
-    type: 'System',
-    read: false,
-    bookmarked: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 5),
-  },
-  {
-    id: '2',
-    headline: 'Security Alert: New Login',
-    summary: "A new device has logged into your account. If this wasn't you, please secure your account immediately.",
-    content: `### Security Alert\n\nA login to your account was just detected from a new device:\n\n- **Device:** Chrome on macOS\n- **Location:** San Francisco, CA (approximate)\n- **Time:** ${new Date(Date.now() - 1000 * 60 * 60 * 2).toLocaleString()}\n\nIf you do not recognize this activity, please [change your password](/) immediately and review your account security settings.`,
-    type: 'Security',
-    read: false,
-    bookmarked: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-  },
-  {
-    id: '3',
-    headline: 'Welcome to LLM Notifier!',
-    summary: 'Get started with the platform and learn about its features.',
-    content: `# Welcome!\n\nThis is your new notification center. You can receive updates, alerts, and other information directly from your connected LLM services.\n\nTo add a new notification, you can use our API. For example:\n\n\`\`\`bash\ncurl -X POST http://localhost:9003/api/notifications \\
--H "Content-Type: application/json" \\
--d '{"headline": "Test from curl","summary": "This is a test notification.","content": "Full content here.","type": "API Example"}'\n\`\`\``,
-    type: 'General',
-    read: true,
-    bookmarked: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-  },
-];
+// Start with an empty dataset – the application or API endpoints will insert
+// notifications at runtime. This prevents any hard-coded "seed" messages from
+// appearing when the database is first created.
+const initialNotifications: Notification[] = [];
 
 function rowToNotification(row: any): Notification {
   return {

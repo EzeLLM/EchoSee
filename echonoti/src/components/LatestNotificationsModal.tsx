@@ -42,7 +42,7 @@ export function LatestNotificationsModal({ notifications }: { notifications: Not
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px] bg-card border-primary/50">
+      <DialogContent className="sm:max-w-lg bg-card border-primary/50">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-headline">
             <Bell className="h-5 w-5 text-primary" />
@@ -56,8 +56,8 @@ export function LatestNotificationsModal({ notifications }: { notifications: Not
           <ul className="space-y-3">
             {notifications.slice(0, 3).map((notification) => (
               <li key={notification.id} className="text-sm p-3 bg-background/50 rounded-md border">
-                <p className="font-medium text-foreground">{notification.headline}</p>
-                <p className="text-muted-foreground truncate">{notification.summary}</p>
+                <p className="font-medium text-foreground line-clamp-1">{notification.headline}</p>
+                <p className="text-muted-foreground line-clamp-2">{notification.summary}</p>
               </li>
             ))}
           </ul>
