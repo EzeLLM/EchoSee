@@ -5,6 +5,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import List
 
+import numpy as np
 import openai
 from sklearn.cluster import KMeans
 from tavily import TavilyClient
@@ -57,7 +58,7 @@ class SearchClient:
         return self._summarise(user_query, filtered).strip()
 
     def _generate_queries(self, user_query: str) -> List[str]:
-        """Use embeddings + clustering to create diverse search queries."""
+        """Use embeddings + clustering to create diverse search queries, selecting the most representative query from each cluster."""
         pool_size = self.config.oversample_factor * self.max_queries
         prompt = f"""Generate {pool_size} paraphrases of: '{user_query}'\nThe queries should be in the same language as the user query. The output me be a pure list, just querries where each querry is a line, no numerations no bullet points etc.
         If they user querry includes multiple questions, then generate queries for each question, do not include multiple questions in the same query.
@@ -78,14 +79,34 @@ class SearchClient:
         vectors = [item.embedding for item in resp_embed.data]
 
         # cluster into max_queries groups
-        labels = KMeans(n_clusters=self.max_queries, random_state=42).fit_predict(vectors)
+        kmeans = KMeans(n_clusters=self.max_queries, random_state=42)
+        labels = kmeans.fit_predict(vectors)
         clusters = {i: [] for i in range(self.max_queries)}
-        for query, label in zip(deduped, labels):
+        cluster_vectors = {i: [] for i in range(self.max_queries)}
+        
+        for query, vector, label in zip(deduped, vectors, labels):
             clusters[label].append(query)
+            cluster_vectors[label].append(vector)
 
-        # pick the shortest query from each cluster for clarity
-        final_queries = [min(cluster, key=len) for cluster in clusters.values()]
-        print("The final queries are:")
+        # pick the query closest to centroid from each cluster for best representation
+        final_queries = []
+        for cluster_id in range(self.max_queries):
+            cluster_queries = clusters[cluster_id]
+            cluster_vecs = cluster_vectors[cluster_id]
+            
+            if not cluster_queries:
+                continue
+                
+            # Cluster centroid from KMeans
+            cluster_centroid = kmeans.cluster_centers_[cluster_id]
+            
+            # Find closest to centroid
+            centroid_distances = [cosine_similarity(vec, cluster_centroid) for vec in cluster_vecs]
+            closest_to_centroid_idx = np.argmax(centroid_distances)
+            
+            final_queries.append(cluster_queries[closest_to_centroid_idx])
+
+        print("The final queries are (using centroid method):")
         print(final_queries)
         print("--------------------------------")
         return final_queries
@@ -132,14 +153,17 @@ class SearchClient:
         q_resp = openai.embeddings.create(
             input=[user_query], model=self.config.embedding_model
         )
+        # q_vec is the embedding of the user query
         q_vec = q_resp.data[0].embedding
 
         # embed all snippets
         data_resp = openai.embeddings.create(
             input=snippets, model=self.config.embedding_model
         )
+        # emb_list is the embeddings of the snippets
         emb_list = data_resp.data
 
+        # scored is a list of tuples, each tuple contains a snippet and a score
         scored = []
         selected: List[str] = []
         for text, rec in zip(snippets, emb_list):
@@ -192,4 +216,4 @@ def cosine_similarity(a, b):
     return dot(a, b) / (norm(a) * norm(b))
 
 if __name__ == "__main__":
-    print(search_agent("are the flights resumed to iraq after recent events? and what caused the recent events?", max_queries=4,recent=True))
+    print(search_agent("why does tesla recommend chargin lfp to full even though we know thats bad for batteries?", max_queries=4,recent=True))
