@@ -9,14 +9,14 @@ import numpy as np
 import openai
 from sklearn.cluster import KMeans
 from tavily import TavilyClient
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from utils.utils import llm, high_performance_llm  # noqa: E402
 
 
 @dataclass
 class SearchConfig:
-    max_queries: int = 3
-    oversample_factor: int = 4        # how many candidates per final query
+    max_queries: int = 5
+    oversample_factor: int = 20        # how many candidates per final query
     embedding_model: str = "text-embedding-ada-002"
     citation_limit: int = 6            # number of evidence snippets to include in summary
 
@@ -47,6 +47,7 @@ class SearchClient:
         print(queries)
         print("--------------------------------")
         raw_results = asyncio.run(self._collect_search_results(queries, recent))
+        exit()
         # print(raw_results)
         # print("--------------------------------")
         snippets = self._extract_snippets(raw_results)
@@ -60,16 +61,23 @@ class SearchClient:
     def _generate_queries(self, user_query: str) -> List[str]:
         """Use embeddings + clustering to create diverse search queries, selecting the most representative query from each cluster."""
         pool_size = self.config.oversample_factor * self.max_queries
-        prompt = f"""Generate {pool_size} variations of: '{user_query}'
-        The variations must follow these rules STRICTLY:
-        - Variations must not be paraphrased versions of the user query, they must be different queries that cover different aspects of the topic the user asked about.
+        system_prompt = f"""
+        You are a deep research assistant, you are given a user query and you will generate a list of google search queries that will satisfy the rules and guidelines below.
+        The variations must be generated with the following flow:
+        - Think about what the user query is asking, make sure you understand the user query and what the user is asking for.
+        - Think about the way variations should be generated.
+        - Think on how the generated variations should be diverse.
+        - Think on how to make those variations diverse, for example, if the user is asking a doubtfull question, the variations should be diverse in a way that they cover different aspects of the doubts, or if the user is asking a question about a specific topic, the variations should be diverse in a way that they cover different aspects of the topic.
+        - Ask youself: Are these the querries that will give me the most diverse results to satisfy the user? If not improve the generated variations.
+        Verify the following points for the generated variations:
         - The variations must be in the same language as the user query.
         - The variations must be real search engine querries and should cover different aspects of the topic, or topics.
         - The variations must be a pure list, just querries where each querry is a line, no numerations no bullet points etc.
         - If they user querry includes multiple questions, then generate queries for each question, do not include multiple questions in the same query.
-        - The variations must be diverse, they must not be similar to each other.
+        - The variations must be diverse, they must not be similar to each other, as different as possible.
+        - Even though they must be diverse, around 20% of them must be fully focused on the user query, and some of them must be more general.
         """
-        resp = self.base_llm.invoke([HumanMessage(content=prompt)])
+        resp = self.hp_llm.invoke([SystemMessage(content=system_prompt),HumanMessage(content=prompt)])
         pool = [line.strip() for line in resp.content.splitlines() if line.strip()]
         print("The original queries are:")
         print(pool)
