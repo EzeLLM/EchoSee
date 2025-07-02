@@ -19,6 +19,7 @@ class SearchConfig:
     oversample_factor: int = 20        # how many candidates per final query
     embedding_model: str = "text-embedding-ada-002"
     citation_limit: int = 6            # number of evidence snippets to include in summary
+    mmr_lambda: float = 0.6            # trade-off between relevance (1) and novelty (0). Lower means novelty gets more weight.
 
 
 class SearchClient:
@@ -38,16 +39,23 @@ class SearchClient:
         self.tavily = TavilyClient(os.environ["TAVILY_API_KEY"])
         openai.api_key = os.environ.get("OPENAI_API_KEY")
 
+        # Local cache to avoid repeated embedding calls for the same text.
+        # Key   : str (raw text)
+        # Value : List[float] (embedding vector)
+        self._embedding_cache: dict[str, list[float]] = {}
+
     def run(self, user_query: str, *, max_queries: int | None = None, recent: bool = False) -> str:
         """Execute the full diversified search pipeline and return the answer."""
         if max_queries is not None:
             self.max_queries = max_queries
 
+        # Pre-compute and cache the user-query embedding so later steps reuse it.
+        self._embed([user_query])
+
         queries = self._generate_queries(user_query)
         print(queries)
         print("--------------------------------")
         raw_results = asyncio.run(self._collect_search_results(queries, recent))
-        exit()
         # print(raw_results)
         # print("--------------------------------")
         snippets = self._extract_snippets(raw_results)
@@ -66,7 +74,7 @@ Your output must be a **plain list**—one query per line, no numbering, no bull
 
 ---
 
-### 1  Understand the user’s need first
+### 1  Understand the user's need first
 1. *Reflect*: What does the user really want to learn or resolve? Break the intent into its core sub-topics or possible angles.  
 2. *Mind the nuance*: If the user expresses doubt, controversy, or comparison, note each tension point (e.g. benefit vs harm, official stance vs community experience).
 
@@ -76,21 +84,21 @@ Your output must be a **plain list**—one query per line, no numbering, no bull
 Produce **N = max_queries × 2** queries unless otherwise instructed (e.g. max_queries is supplied by the caller).  
 While writing each query, consciously vary at least one of:
 
-| Variation lever          | Examples (for “Why does Tesla recommend charging LFP batteries to 100 %?”)                           |
+| Variation lever          | Examples (for "Why does Tesla recommend charging LFP batteries to 100 %?")                           |
 |--------------------------|-------------------------------------------------------------------------------------------------------|
-| **Perspective / sentiment** | *“Tesla says charge LFP to 100 %, is that harmful?”*                                                |
-| **Question ↔ statement**    | *“Harm to LFP batteries when charged to full”*                                                      |
-| **Specific ↔ broad**        | *“LFP battery full-charge cycle life”* vs *“EV battery charging best practices”*                    |
-| **Synonyms / paraphrases**  | *“lithium iron phosphate over-charge effects”*                                                      |
-| **Stakeholder focus**       | *“Tesla owner forum advice on LFP charging”*                                                        |
-| **Cause ↔ effect**          | *“Does 100 % charging improve LFP BMS calibration?”*                                                |
+| **Perspective / sentiment** | *"Tesla says charge LFP to 100 %, is that harmful?"*                                                |
+| **Question ↔ statement**    | *"Harm to LFP batteries when charged to full"*                                                      |
+| **Specific ↔ broad**        | *"LFP battery full-charge cycle life"* vs *"EV battery charging best practices"*                    |
+| **Synonyms / paraphrases**  | *"lithium iron phosphate over-charge effects"*                                                      |
+| **Stakeholder focus**       | *"Tesla owner forum advice on LFP charging"*                                                        |
+| **Cause ↔ effect**          | *"Does 100 % charging improve LFP BMS calibration?"*                                                |
 
 ---
 
 ### 3  Balance focus and breadth
-* Roughly **20 %** of queries should track the user’s wording almost verbatim.  
+* Roughly **20 %** of queries should track the user's wording almost verbatim.  
   *Example:*  
-  - *“Tesla recommends charging LFP to full—why?”*  
+  - *"Tesla recommends charging LFP to full—why?"*  
 * The rest should explore wider or adjacent angles (chemistry, longevity studies, manufacturer guidelines, user anecdotes, etc.).
 
 ---
@@ -113,10 +121,10 @@ query three
 (Nothing before or after the list.)
 
 Quick example
-User: “Why does Tesla recommend charging LFP to full even though we know that’s bad for batteries?”
+User: "Why does Tesla recommend charging LFP to full even though we know that's bad for batteries?"
 Possible output (first 6 of ≈8):
 Tesla recommends charging LFP to 100 percent why
-Tesla recommends charging LFP to full but isn’t that harmful
+Tesla recommends charging LFP to full but isn't that harmful
 LFP battery longevity when charged to 100 percent
 Tesla LFP battery full charge calibration benefits
 Does full charging degrade lithium iron phosphate batteries
@@ -134,12 +142,8 @@ Follow these rules exactly every time you are invoked.
         # dedupe while preserving order
         deduped = list(dict.fromkeys(pool))
 
-        # embed candidates
-        resp_embed = openai.embeddings.create(
-            input=deduped,
-            model=self.config.embedding_model
-        )
-        vectors = [item.embedding for item in resp_embed.data]
+        # embed candidates (uses cache under the hood)
+        vectors = self._embed(deduped)
 
         # cluster into max_queries groups
         kmeans = KMeans(n_clusters=self.max_queries, random_state=42)
@@ -205,47 +209,58 @@ Follow these rules exactly every time you are invoked.
         return snippets
 
     def _filter_snippets(self, snippets: List[str], user_query: str) -> List[str]:
+        """Select a small set of diverse, high-relevance snippets via Max Marginal
+        Relevance (MMR).
+
+        MMR greedily balances two forces:
+            relevance  – similarity to the user query
+            novelty    – dissimilarity to snippets already selected
+
+        The trade-off is controlled by ``self.config.mmr_lambda``.
         """
-        Embed & score snippets for relevance + novelty.
 
-        Relevance: how close the snippet is to the user query.
-        Novelty: how different it is from already selected snippets.
-        Combined scoring prevents redundancy and ensures diverse, on-point evidence.
-        """
-        # embed user query
-        q_resp = openai.embeddings.create(
-            input=[user_query], model=self.config.embedding_model
-        )
-        # q_vec is the embedding of the user query
-        q_vec = q_resp.data[0].embedding
+        if not snippets:
+            return []
 
-        # embed all snippets
-        data_resp = openai.embeddings.create(
-            input=snippets, model=self.config.embedding_model
-        )
-        # emb_list is the embeddings of the snippets
-        emb_list = data_resp.data
+        # Embed user query + all snippets in one batch (cached query embedding makes this cheap)
+        vectors = self._embed([user_query] + snippets)
+        q_vec = vectors[0]
+        doc_vecs = vectors[1:]
 
-        # scored is a list of tuples, each tuple contains a snippet and a score
-        scored = []
-        selected: List[str] = []
-        for text, rec in zip(snippets, emb_list):
-            emb = rec.embedding
-            rel = cosine_similarity(emb, q_vec)
-            nov = 1 - max((
-                cosine_similarity(
-                    emb,
-                    openai.embeddings.create(input=[s], model=self.config.embedding_model).data[0].embedding,
-                )
-                for s in selected
-            ), default=0)
-            score = 0.7 * rel + 0.3 * nov
-            scored.append((text, score))
+        # ── 2. Pre-compute relevance scores (similarity to the query)
+        relevance_scores = [cosine_similarity(v, q_vec) for v in doc_vecs]
 
-        # pick top-K snippets by score
-        scored.sort(key=lambda x: -x[1])
-        top = [text for text, _ in scored[: self.config.citation_limit]]
-        return top
+        λ = getattr(self.config, "mmr_lambda", 0.6)
+        k = min(self.config.citation_limit, len(snippets))
+
+        selected_indices: List[int] = []
+        for _ in range(k):
+            best_idx, best_score = None, -float("inf")
+
+            for idx, vec in enumerate(doc_vecs):
+                if idx in selected_indices:
+                    continue  # already chosen
+
+                # novelty term: max similarity to anything already selected
+                if selected_indices:
+                    max_sim_to_selected = max(
+                        cosine_similarity(vec, doc_vecs[j]) for j in selected_indices
+                    )
+                else:
+                    max_sim_to_selected = 0.0
+
+                mmr_score = λ * relevance_scores[idx] - (1 - λ) * max_sim_to_selected
+
+                if mmr_score > best_score:
+                    best_score = mmr_score
+                    best_idx = idx
+
+            if best_idx is None:
+                break  # no candidates left
+
+            selected_indices.append(best_idx)
+
+        return [snippets[i] for i in selected_indices]
 
     def _summarise(self, user_query: str, evidence: List[str]) -> str:
         """Use hp_llm to write a concise, fact-checked answer."""
@@ -264,10 +279,55 @@ Follow these rules exactly every time you are invoked.
         )
         return self.hp_llm.invoke([HumanMessage(content=prompt)]).content
 
+    # ── Embedding helper -------------------------------------------------
+    def _embed(self, texts: List[str]) -> List[List[float]]:  # noqa: D401
+        """Return embeddings for *texts*, using an internal cache to avoid
+        duplicate calls to the OpenAI embeddings endpoint."""
 
-def search_agent(user_query: str, max_queries: int = 3, *, recent: bool = False) -> str:
-    """Convenience wrapper."""
-    cfg = SearchConfig(max_queries=max_queries)
+        # Split input into cached and uncached texts
+        uncached = [t for t in texts if t not in self._embedding_cache]
+
+        if uncached:
+            # Batch request for all uncached strings
+            resp = openai.embeddings.create(
+                input=uncached,
+                model=self.config.embedding_model,
+            )
+
+            for text, rec in zip(uncached, resp.data):
+                self._embedding_cache[text] = rec.embedding
+
+        # Return embeddings in the same order as *texts*
+        return [self._embedding_cache[t] for t in texts]
+
+
+def search_agent(
+    user_query: str,
+    max_queries: int = 3,
+    *,
+    recent: bool = False,
+    mmr_lambda: float | None = None,
+) -> str:
+    """Convenience wrapper.
+
+    Parameters
+    ----------
+    user_query : str
+        The search question.
+    max_queries : int, default 3
+        How many distinct search engine queries to generate.
+    recent : bool, default False
+        Restrict Tavily results to the past month.
+    mmr_lambda : float, optional
+        Weight for relevance vs. novelty in MMR. If None, uses the default
+        from ``SearchConfig`` (currently 0.6).
+    """
+
+    cfg_kwargs = {"max_queries": max_queries}
+    if mmr_lambda is not None:
+        cfg_kwargs["mmr_lambda"] = mmr_lambda
+
+    cfg = SearchConfig(**cfg_kwargs)
     return SearchClient(config=cfg).run(user_query, recent=recent)
 
 
