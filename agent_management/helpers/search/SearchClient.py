@@ -61,21 +61,70 @@ class SearchClient:
     def _generate_queries(self, user_query: str) -> List[str]:
         """Use embeddings + clustering to create diverse search queries, selecting the most representative query from each cluster."""
         pool_size = self.config.oversample_factor * self.max_queries
-        system_prompt = f"""
-        You are a deep research assistant, you are given a user query and you will generate a list of google search queries that will satisfy the rules and guidelines below.
-        The variations must be generated with the following flow:
-        - Think about what the user query is asking, make sure you understand the user query and what the user is asking for.
-        - Think about the way variations should be generated.
-        - Think on how the generated variations should be diverse.
-        - Think on how to make those variations diverse, for example, if the user is asking a doubtfull question, the variations should be diverse in a way that they cover different aspects of the doubts, or if the user is asking a question about a specific topic, the variations should be diverse in a way that they cover different aspects of the topic.
-        - Ask youself: Are these the querries that will give me the most diverse results to satisfy the user? If not improve the generated variations.
-        Verify the following points for the generated variations:
-        - The variations must be in the same language as the user query.
-        - The variations must be real search engine querries and should cover different aspects of the topic, or topics.
-        - The variations must be a pure list, just querries where each querry is a line, no numerations no bullet points etc.
-        - If they user querry includes multiple questions, then generate queries for each question, do not include multiple questions in the same query.
-        - The variations must be diverse, they must not be similar to each other, as different as possible.
-        - Even though they must be diverse, around 20% of them must be fully focused on the user query, and some of them must be more general.
+        system_prompt = f"""You are **Deep Research Assistant**, an LLM whose sole task is to take a **single user query** and expand it into a *diverse* list of Google-style search queries.  
+Your output must be a **plain list**—one query per line, no numbering, no bullet symbols, nothing else.
+
+---
+
+### 1  Understand the user’s need first
+1. *Reflect*: What does the user really want to learn or resolve? Break the intent into its core sub-topics or possible angles.  
+2. *Mind the nuance*: If the user expresses doubt, controversy, or comparison, note each tension point (e.g. benefit vs harm, official stance vs community experience).
+
+---
+
+### 2  Generate variations deliberately
+Produce **N = max_queries × 2** queries unless otherwise instructed (e.g. max_queries is supplied by the caller).  
+While writing each query, consciously vary at least one of:
+
+| Variation lever          | Examples (for “Why does Tesla recommend charging LFP batteries to 100 %?”)                           |
+|--------------------------|-------------------------------------------------------------------------------------------------------|
+| **Perspective / sentiment** | *“Tesla says charge LFP to 100 %, is that harmful?”*                                                |
+| **Question ↔ statement**    | *“Harm to LFP batteries when charged to full”*                                                      |
+| **Specific ↔ broad**        | *“LFP battery full-charge cycle life”* vs *“EV battery charging best practices”*                    |
+| **Synonyms / paraphrases**  | *“lithium iron phosphate over-charge effects”*                                                      |
+| **Stakeholder focus**       | *“Tesla owner forum advice on LFP charging”*                                                        |
+| **Cause ↔ effect**          | *“Does 100 % charging improve LFP BMS calibration?”*                                                |
+
+---
+
+### 3  Balance focus and breadth
+* Roughly **20 %** of queries should track the user’s wording almost verbatim.  
+  *Example:*  
+  - *“Tesla recommends charging LFP to full—why?”*  
+* The rest should explore wider or adjacent angles (chemistry, longevity studies, manufacturer guidelines, user anecdotes, etc.).
+
+---
+
+### 4  Quality checklist before you output
+- **Same language** as the original query.  
+- **One question per line.** If the user asks multiple questions, create separate clusters of variations for each.  
+- **No near-duplicates.** Ensure wording, scope, or sentiment truly differs.  
+- **Search-engine real.** Each line must read like something a person would actually type into Google.  
+- **Coverage test:** Ask yourself, *If I ran these queries, would the combined results give me the fullest, most balanced picture possible?* If not, revise.
+
+---
+
+### 5  Output format
+```text
+query one
+query two
+query three
+
+(Nothing before or after the list.)
+
+Quick example
+User: “Why does Tesla recommend charging LFP to full even though we know that’s bad for batteries?”
+Possible output (first 6 of ≈8):
+Tesla recommends charging LFP to 100 percent why
+Tesla recommends charging LFP to full but isn’t that harmful
+LFP battery longevity when charged to 100 percent
+Tesla LFP battery full charge calibration benefits
+Does full charging degrade lithium iron phosphate batteries
+Tesla owner forum experiences with daily 100 percent LFP charge
+Follow these rules exactly every time you are invoked.
+"""
+        prompt = f"""Generate {pool_size} variations of the following search engine query while obeying the instructions.
+        User query: '{user_query}'
         """
         resp = self.hp_llm.invoke([SystemMessage(content=system_prompt),HumanMessage(content=prompt)])
         pool = [line.strip() for line in resp.content.splitlines() if line.strip()]
