@@ -12,10 +12,10 @@ from mcp.server.fastmcp import Context, FastMCP
 
 from mcp.client.session import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
-from mcp_servers.utils import load_config, write_audit
+from mcp_servers.utils import load_config, load_mcp_server_configs, write_audit
 
 config = load_config()
-servers = config.get("mcp", {}).get("servers", {})
+servers = load_mcp_server_configs()
 
 app = FastMCP("scheduler")
 scheduler = AsyncIOScheduler()

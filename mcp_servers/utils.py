@@ -15,12 +15,19 @@ CONFIG_PATH = ROOT / "config.yml"
 LOG_DIR = ROOT / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 AUDIT_LOG = LOG_DIR / "audit.jsonl"
+MCP_SERVERS_PATH = ROOT / "mcp_servers" / "servers.json"
 
 
 def load_config() -> Dict[str, Any]:
     """Load project configuration."""
     with open(CONFIG_PATH, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+def load_mcp_server_configs() -> Dict[str, Any]:
+    """Load MCP server definitions from JSON."""
+    with open(MCP_SERVERS_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def write_audit(entry: Dict[str, Any]) -> None:
@@ -30,5 +37,11 @@ def write_audit(entry: Dict[str, Any]) -> None:
         f.write(json.dumps(entry) + "\n")
 
 
-__all__ = ["load_config", "write_audit", "CONFIG_PATH"]
+__all__ = [
+    "load_config",
+    "load_mcp_server_configs",
+    "write_audit",
+    "CONFIG_PATH",
+    "MCP_SERVERS_PATH",
+]
 

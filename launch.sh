@@ -43,10 +43,10 @@ start_service() {
 }
 
 start_service "echonoti" npm --prefix echonoti run dev
-start_service "web_mcp" uvicorn mcp_servers.web.server:app.streamable_http_app --factory --port 7010
-start_service "notify_mcp" uvicorn mcp_servers.notify.server:app.streamable_http_app --factory --port 7011
-start_service "scheduler_mcp" uvicorn mcp_servers.scheduler.server:app.streamable_http_app --factory --port 7012
-start_service "leetcode_mcp" uvicorn mcp_servers.leetcode.server:app.streamable_http_app --factory --port 7013
+# Launch all MCP servers defined in JSON config
+while IFS=$'\t' read -r name module port; do
+  start_service "${name}_mcp" uvicorn "$module" --factory --port "$port"
+done < <(jq -r 'to_entries[] | "\(.key)\t\(.value.module)\t\(.value.port)"' mcp_servers/servers.json)
 
 cleanup() {
   echo -e "${yellow}\nShutting down services...${reset}"

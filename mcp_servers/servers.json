@@ -1,0 +1,22 @@
+{
+  "web": {
+    "module": "mcp_servers.web.server:app.streamable_http_app",
+    "port": 7010,
+    "url": "http://localhost:7010/mcp"
+  },
+  "notify": {
+    "module": "mcp_servers.notify.server:app.streamable_http_app",
+    "port": 7011,
+    "url": "http://localhost:7011/mcp"
+  },
+  "scheduler": {
+    "module": "mcp_servers.scheduler.server:app.streamable_http_app",
+    "port": 7012,
+    "url": "http://localhost:7012/mcp"
+  },
+  "leetcode": {
+    "module": "mcp_servers.leetcode.server:app.streamable_http_app",
+    "port": 7013,
+    "url": "http://localhost:7013/mcp"
+  }
+}

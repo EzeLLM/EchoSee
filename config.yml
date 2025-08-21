@@ -39,11 +39,6 @@ callbacks:
   alarm:
     sound: assets/alarm1.wav
 mcp:
-  servers:
-    web:      { url: "http://localhost:7010/mcp" }
-    notify:   { url: "http://localhost:7011/mcp" }
-    scheduler: { url: "http://localhost:7012/mcp" }
-    leetcode: { url: "http://localhost:7013/mcp" }
   policy:
     web_allow_domains: ["api.open-meteo.com","api.weather.gov"]
     notify_allow_channels: ["home","alerts","me"]
