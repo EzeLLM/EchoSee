@@ -143,9 +143,20 @@ Run ```setup_dev``` to setup LangSmith. Make sure api is set in ```.env``` or as
 ```
 . setup_dev.sh
 ```
-5. **Run the Application:** 
-Start the assistant by running:
+5. **Run the Application:**
+Start all required services and the assistant with the launch script:
+
+```bash
+./launch.sh
+```
+
+This spins up the Echonoti web UI and all MCP servers, then hands control to the main assistant.
+
+To run only the Python assistant without the helpers:
+
+```bash
 python -m app_manager.manager
+```
 
 
 

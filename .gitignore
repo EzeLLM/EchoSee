@@ -35,4 +35,5 @@ echonoti/src/lib/db.json
 /echonoti-firebase-adminsdk-fbsvc-960ad35e62.json
 /echonoti/src/lib/db.json
 /echonoti/node_modules
+node_modules/
 *.log
