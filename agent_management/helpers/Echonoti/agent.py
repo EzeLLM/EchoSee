@@ -59,7 +59,8 @@ def send_notification(headline: str, summary: str, content: str, notification_ty
     - Keep headline and summary concise since they appear in notification previews
     - Include relevant context in content so the user understands the notification without needing additional information
     - Try to use markdown formatting for the content to make it more readable on the device, avoid long paragraphs.
-    """
+
+    THE CONTENT MUST BE A WELL FORMATTED MARKDOWN DOCUMENT, NOT A PLAIN TEXT, NOT SOME WEIRD PYTHONG STRING BLOCK BUT MARKDOWN DOCUMENT. """
     
 
     if not headline:

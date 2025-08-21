@@ -17,7 +17,7 @@ class AgentManager:
     def __init__(self):
         # Set up tools
         self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'AgentManager')
-        self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,event_tools.stop_alarm, agents.leetcode_agent,echonoti_agent.send_notification]
+        self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,event_tools.stop_alarm, agents.leetcode_agent,echonoti_agent.send_notification,agents.robust_search]
         
         # Initialize conversation history
         self.conversation_history: List[Dict[str, List[BaseMessage]]] = []
