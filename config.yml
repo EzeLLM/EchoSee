@@ -31,10 +31,6 @@ STT:
     Make accurate transcritpions of the audio. Also structure the transcription well if there are multiple speakers. Describe the tone of the speaker.
   model: gpt-4o-mini-transcribe
 
-
-AgentManager:
-  clear_time: 30 # time to clear the conversation history if idle in minutes
-
 callbacks:
   alarm:
     sound: assets/alarm1.wav

@@ -8,7 +8,7 @@ from collections import deque
 from fastapi import HTTPException
 from mcp.server.fastmcp import Context, FastMCP
 
-from agent_management.helpers.Echonoti.EchonotiWrapper import send_notification
+from .lib.EchonotiWrapper import send_notification
 from mcp_servers.utils import load_config, write_audit
 
 config = load_config()

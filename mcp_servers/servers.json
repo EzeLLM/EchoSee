@@ -18,5 +18,20 @@
     "module": "mcp_servers.leetcode.server:app.streamable_http_app",
     "port": 7013,
     "url": "http://localhost:7013/mcp"
+  },
+  "time": {
+    "module": "mcp_servers.time.server:app.streamable_http_app",
+    "port": 7014,
+    "url": "http://localhost:7014/mcp"
+  },
+  "alarm": {
+    "module": "mcp_servers.alarm.server:app.streamable_http_app",
+    "port": 7015,
+    "url": "http://localhost:7015/mcp"
+  },
+  "search": {
+    "module": "mcp_servers.search.server:app.streamable_http_app",
+    "port": 7016,
+    "url": "http://localhost:7016/mcp"
   }
 }

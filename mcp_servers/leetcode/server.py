@@ -7,7 +7,7 @@ import time
 import requests
 from mcp.server.fastmcp import Context, FastMCP
 
-from agent_management.helpers.leetcode.LeetCodeAPI import LeetCodeAPI
+from .lib.LeetCodeAPI import LeetCodeAPI
 from mcp_servers.utils import write_audit
 
 app = FastMCP("leetcode")

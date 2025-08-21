@@ -60,4 +60,4 @@ trap cleanup EXIT INT TERM
 
 echo -e "${green}All services launched. Starting main app...${reset}\n"
 
-python -m app_manager.manager
+python main.py
