@@ -43,10 +43,10 @@ start_service() {
 }
 
 start_service "echonoti" npm --prefix echonoti run dev
-start_service "web_mcp" uvicorn mcp_servers.web.server:app --port 7010
-start_service "notify_mcp" uvicorn mcp_servers.notify.server:app --port 7011
-start_service "scheduler_mcp" uvicorn mcp_servers.scheduler.server:app --port 7012
-start_service "leetcode_mcp" uvicorn mcp_servers.leetcode.server:app --port 7013
+start_service "web_mcp" uvicorn mcp_servers.web.server:app.streamable_http_app --factory --port 7010
+start_service "notify_mcp" uvicorn mcp_servers.notify.server:app.streamable_http_app --factory --port 7011
+start_service "scheduler_mcp" uvicorn mcp_servers.scheduler.server:app.streamable_http_app --factory --port 7012
+start_service "leetcode_mcp" uvicorn mcp_servers.leetcode.server:app.streamable_http_app --factory --port 7013
 
 cleanup() {
   echo -e "${yellow}\nShutting down services...${reset}"
