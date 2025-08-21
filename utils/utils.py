@@ -8,8 +8,6 @@ import atexit
 from langchain_openai import ChatOpenAI
 from smolagents import LiteLLMModel
 from langchain_deepseek import ChatDeepSeek
-# Import from local modules using explicit relative or absolute imports
-from event_manager.event_manager import EventManager  # Assuming proper package structure
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -35,8 +33,6 @@ def open_yaml(file_path, key=None):
 def handle_exit():
     """Cleanup function for exit handling"""
     print("Exiting...")
-    event_manager_instance.stop()
-    print("Event manager stopped.")
 
 # Configuration loading
 tts_config = open_yaml(CONFIG_PATH, 'TTS')
@@ -70,10 +66,6 @@ elif llm_config['high_performance_provider'] == 'openai':
     )
 else:
     raise ValueError(f"Invalid provider: {llm_config['high_performance_provider']}")
-
-# Event manager initialization (renamed to avoid naming conflict)
-event_manager_instance = EventManager()
-event_manager_instance.start()
 
 # Register cleanup
 atexit.register(handle_exit)

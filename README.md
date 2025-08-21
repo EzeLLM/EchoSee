@@ -63,6 +63,12 @@ EchoSee
 │   ├── scheduler.md
 │   ├── callbacks.py
 │   └── event_manager.py
+├── mcp_servers
+│   ├── servers.json
+│   ├── web/
+│   ├── notify/
+│   ├── scheduler/
+│   └── leetcode/
 ├── config.yml
 ├── __inti__.py
 ├── app_manager
@@ -118,6 +124,11 @@ EchoSee
 - **File:** `app_manager/manager.py`
 - **Highlights:** Manages the main loop for capturing user input (via STT), processing it with the agent, and converting responses back to speech using TTS.
 
+### MCP Servers
+- **Purpose:** Self-contained tools exposed via the [Model Context Protocol](https://modelcontextprotocol.io/).
+- **Location:** `mcp_servers/`
+- **Configuration:** Define servers in `mcp_servers/servers.json`; entries are auto-discovered by `launch.sh`, making it simple to add new MCP services.
+
 ---
 
 ## Installation & Setup
@@ -134,7 +145,8 @@ pip install -e .
 
 3. **Configure the Application:**
 
-- Open config.yml and adjust settings for TTS, STT, LLM, and event callbacks.
+   - Open `config.yml` to adjust settings for TTS, STT, LLM, and event callbacks.
+   - Edit `mcp_servers/servers.json` to register MCP servers and their ports.
 
 4. **Environment Variables:**
 Set ```OPENAI_API_KEY``` , ```TAVILY_API_KEY``` , and (optionally) ```DeepSeek``` API keys in ```.env``` or as environment variable.
@@ -143,9 +155,20 @@ Run ```setup_dev``` to setup LangSmith. Make sure api is set in ```.env``` or as
 ```
 . setup_dev.sh
 ```
-5. **Run the Application:** 
-Start the assistant by running:
+5. **Run the Application:**
+Start all required services and the assistant with the launch script:
+
+```bash
+./launch.sh
+```
+
+This spins up the Echonoti web UI and all MCP servers defined in `mcp_servers/servers.json`, then hands control to the main assistant.
+
+To run only the Python assistant without the helpers:
+
+```bash
 python -m app_manager.manager
+```
 
 
 

@@ -15,3 +15,16 @@ smolagents==1.9.2
 sounddevice==0.5.1
 soundfile==0.13.1
 tavily_python==0.5.1
+scikit-learn==1.5.2
+pytz==2024.2
+langchain-deepseek==0.1.4
+
+httpx==0.28.1
+mcp==1.13.0
+pydantic==2.11.7
+fastapi==0.115.6
+uvicorn==0.32.0
+apscheduler==3.10.4
+requests==2.32.3
+beautifulsoup4==4.12.2
+
