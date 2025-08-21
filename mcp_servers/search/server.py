@@ -197,7 +197,7 @@ def filter_snippets_mmr(snippets: List[str], user_query: str, config: SearchConf
 
 
 @app.custom_route("/healthz", methods=["GET"])
-async def healthz():
+async def healthz(request):
     return {"ok": True}
 
 

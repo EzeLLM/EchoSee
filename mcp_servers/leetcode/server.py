@@ -15,7 +15,7 @@ api = LeetCodeAPI()
 
 
 @app.custom_route("/healthz", methods=["GET"])
-async def healthz():
+async def healthz(request):
     return {"ok": True}
 
 

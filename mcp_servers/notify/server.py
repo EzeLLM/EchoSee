@@ -21,7 +21,7 @@ call_times: deque[float] = deque()
 
 
 @app.custom_route("/healthz", methods=["GET"])
-async def healthz():
+async def healthz(request):
     return {"ok": True}
 
 

@@ -2,36 +2,36 @@
   "web": {
     "module": "mcp_servers.web.server:app.streamable_http_app",
     "port": 7010,
-    "url": "http://localhost:7010/mcp"
+    "url": "http://127.0.0.1:7010/mcp"
   },
   "notify": {
     "module": "mcp_servers.notify.server:app.streamable_http_app",
     "port": 7011,
-    "url": "http://localhost:7011/mcp"
+    "url": "http://127.0.0.1:7011/mcp"
   },
   "scheduler": {
     "module": "mcp_servers.scheduler.server:app.streamable_http_app",
     "port": 7012,
-    "url": "http://localhost:7012/mcp"
+    "url": "http://127.0.0.1:7012/mcp"
   },
   "leetcode": {
     "module": "mcp_servers.leetcode.server:app.streamable_http_app",
     "port": 7013,
-    "url": "http://localhost:7013/mcp"
+    "url": "http://127.0.0.1:7013/mcp"
   },
   "time": {
     "module": "mcp_servers.time.server:app.streamable_http_app",
     "port": 7014,
-    "url": "http://localhost:7014/mcp"
+    "url": "http://127.0.0.1:7014/mcp"
   },
   "alarm": {
     "module": "mcp_servers.alarm.server:app.streamable_http_app",
     "port": 7015,
-    "url": "http://localhost:7015/mcp"
+    "url": "http://127.0.0.1:7015/mcp"
   },
   "search": {
     "module": "mcp_servers.search.server:app.streamable_http_app",
     "port": 7016,
-    "url": "http://localhost:7016/mcp"
+    "url": "http://127.0.0.1:7016/mcp"
   }
 }

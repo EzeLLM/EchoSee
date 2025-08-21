@@ -24,7 +24,7 @@ tavily_client = TavilyClient() if TavilyClient else None
 
 
 @app.custom_route("/healthz", methods=["GET"])
-async def healthz():
+async def healthz(request):
     return {"ok": True}
 
 

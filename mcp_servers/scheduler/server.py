@@ -65,7 +65,7 @@ async def run_job(job_id: str, tool: str, args: dict) -> None:
 
 
 @app.custom_route("/healthz", methods=["GET"])
-async def healthz():
+async def healthz(request):
     return {"ok": True}
 
 

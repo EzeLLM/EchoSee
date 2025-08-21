@@ -6,8 +6,9 @@ import asyncio
 import uuid
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-import pygame
 import os
+from playsound import playsound
+import threading
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp_servers.utils import write_audit
@@ -23,9 +24,9 @@ class AlarmManager:
     """Manages alarm playback and state."""
     
     def __init__(self):
-        pygame.mixer.init()
-        self.current_alarm_task: Optional[asyncio.Task] = None
+        self.current_alarm_thread: Optional[threading.Thread] = None
         self.is_playing = False
+        self.alarm_sound_file = alarm_sound_file
     
     async def play_alarm(self, alarm_id: str):
         """Play alarm sound continuously until stopped."""
@@ -33,20 +34,29 @@ class AlarmManager:
             return
         
         self.is_playing = True
-        try:
-            sound = pygame.mixer.Sound(alarm_sound_file)
+        
+        def play_loop():
             while self.is_playing and alarm_id in active_alarms:
-                sound.play()
-                await asyncio.sleep(sound.get_length())
-        except Exception as e:
-            print(f"Error playing alarm: {e}")
-        finally:
-            self.is_playing = False
+                try:
+                    playsound(self.alarm_sound_file, block=True)
+                    # Short pause between plays
+                    if self.is_playing:
+                        threading.Event().wait(0.5)
+                except Exception as e:
+                    print(f"Error playing alarm: {e}")
+                    break
+        
+        # Run playsound in a separate thread to not block asyncio
+        self.current_alarm_thread = threading.Thread(target=play_loop)
+        self.current_alarm_thread.daemon = True
+        self.current_alarm_thread.start()
     
     def stop_alarm(self):
         """Stop currently playing alarm."""
         self.is_playing = False
-        pygame.mixer.stop()
+        if self.current_alarm_thread and self.current_alarm_thread.is_alive():
+            # Thread will stop on next loop iteration
+            pass
 
 
 alarm_manager = AlarmManager()
@@ -60,7 +70,7 @@ async def trigger_alarm(alarm_id: str):
 
 
 @app.custom_route("/healthz", methods=["GET"])
-async def healthz():
+async def healthz(request):
     return {"ok": True}
 
 
