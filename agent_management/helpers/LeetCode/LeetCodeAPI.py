@@ -4,6 +4,7 @@ import json
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
+from logger import logger as _logger
 
 class LeetCodeAPI:
     def __init__(self):
@@ -21,12 +22,15 @@ class LeetCodeAPI:
             "1": "two-sum",
             "2": "add-two-numbers",
             # Add more mappings as needed
+            "43": "multiply-strings",
             "140": "word-break-ii"
         }
+        self.log = _logger.Logger("leetcode_api")
 
     def _graphql_query(self, query: str, variables: Dict[str, Any]) -> Optional[Dict]:
         """Execute GraphQL query with error handling"""
         try:
+            self.log.debug(f"GraphQL request to {self.graphql_url} with variables: {variables}")
             response = self.session.post(
                 self.graphql_url,
                 json={"query": query, "variables": variables},
@@ -35,34 +39,40 @@ class LeetCodeAPI:
             )
             
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            self.log.debug("GraphQL response received successfully")
+            return data
         except requests.exceptions.RequestException as e:
-            print(f"API Request failed: {str(e)}")
+            self.log.error(f"API Request failed: {str(e)}")
             return None
         except json.JSONDecodeError:
-            print("Invalid JSON response")
+            self.log.error("Invalid JSON response")
             return None
 
     def _get_title_slug(self, problem_code: str) -> str:
         """Get the problem title slug from its code/ID"""
         try:
             # First try to get the problem by ID
+            self.log.info(f"Resolving title slug for problem code: {problem_code}")
             response = requests.get("https://leetcode.com/api/problems/all/")
             if response.status_code == 200:
                 problems_data = response.json()
                 for problem in problems_data.get("stat_status_pairs", []):
                     if str(problem.get("stat", {}).get("question_id")) == problem_code:
+                        self.log.debug("Found title slug via problems/all mapping")
                         return problem.get("stat", {}).get("question__title_slug")
             
             # If not found by ID, check the common problems mapping
             if problem_code in self.common_problems:
+                self.log.debug("Falling back to common_problems mapping")
                 return self.common_problems[problem_code]
             
             # Last resort: use the problem code as slug directly
+            self.log.warning("Falling back to raw problem_code as slug")
             return problem_code
             
         except Exception as e:
-            print(f"Error getting title slug: {e}")
+            self.log.error(f"Error getting title slug: {e}")
             # Fallback to using the mapping or the code itself
             return self.common_problems.get(problem_code, problem_code)
 
@@ -117,7 +127,9 @@ class LeetCodeAPI:
 
     def retrieve(self, problem_code: str) -> Optional[str]:
         """Retrieve and format problem data from LeetCode"""
+        self.log.info(f"Retrieving problem for code: {problem_code}")
         title_slug = self._get_title_slug(problem_code)
+        self.log.debug(f"Resolved title slug: {title_slug}")
         
         content_query = """
         query questionData($titleSlug: String!) {
@@ -138,8 +150,10 @@ class LeetCodeAPI:
         content_data = self._graphql_query(content_query, content_vars)
         
         if content_data and "data" in content_data and "question" in content_data["data"]:
+            self.log.info("Problem retrieved and formatted successfully")
             return self._dict_to_string(content_data["data"]["question"])
         else:
+            self.log.error(f"Failed to retrieve data for problem code: {problem_code}; response: {content_data}")
             return f"Failed to retrieve data for problem code: {problem_code}"
 
 

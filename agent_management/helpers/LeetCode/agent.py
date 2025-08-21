@@ -6,11 +6,16 @@ from langchain.chains.router import MultiPromptChain
 from utils.utils import llm
 from utils.cot import *
 from typing import Literal
-from agent_management.helpers.leetcode.LeetCodeAPI import client
+from agent_management.helpers.leetcode.LeetCodeAPI import LeetCodeAPI
+from logger import logger as _logger
+
+log = _logger.Logger("leetcode_agent")
 # Dummy tools (same as before)
+lc_api = LeetCodeAPI()
+
 def get_problem_context(problem_code):
-    """Dummy tool to get problem context"""
-    return client.retrieve(problem_code)
+    """Get problem context by code using LeetCodeAPI"""
+    return lc_api.retrieve(problem_code)
  
 solution_template = """Task:
 Solve LeetCode questions using the provided problem description and examples. 
@@ -164,21 +169,27 @@ class LeetCodeAgent():
     def run(self, input_text: str) -> str:
         # Extract problem code
         problem_code = self.extract_problem_code(input_text)
+        log.debug(f"Extracted problem code: {problem_code} from input: {input_text}")
         if not problem_code:
             return "Please provide the LeetCode problem code/number."
         
         # Get problem context
+        log.info(f"Retrieving problem context for problem code: {problem_code}")
         context = self.tools[0].func(problem_code)
+        log.debug(f"Retrieved context length: {len(context) if context else 0}")
         
         # Determine assistance type using LLM router
         assistance_type = self.classify_request(input_text, context)
+        log.info(f"Assistance type classified as: {assistance_type}")
         
         # Handle different types
         if assistance_type == "hint":
+            log.info("Generating hint via hint_chain")
             hint = hint_chain.run(context=context, query=input_text)
             to_return = f"Problem context from leetcode:\n{context}\nThe Hint: \n {hint}"
             return to_return
         elif assistance_type == "guide":
+            log.info("Generating solution then guide via guide_chain")
             solution = self.tools[1].func(context)
             guide = guide_chain.run(solution=solution)
             to_return = f"The problem context from leetcode:\n{context}\nThe Guide: {guide}"
@@ -188,7 +199,9 @@ class LeetCodeAgent():
 
     def classify_request(self, query: str, context: str) -> Literal["hint", "guide", "general_help"]:
         """Classify user request using LLM router"""
+        log.debug("Classifying request via router_chain")
         result = router_chain.run(query=query, context=context)
+        log.debug(f"Router output: {result}")
         return result.strip().lower()  # Normalize output
 
     def extract_hint(self, context: str, query: str) -> str:
@@ -208,10 +221,12 @@ class LeetCodeAgent():
         valid_numbers = [num for num in map(int, numbers) if 1 <= num <= 3000]
         
         # Return the first valid number found, or None if no valid numbers exist
-        print(valid_numbers)
-        print(text)
+        log.debug(f"Valid numbers found in text: {valid_numbers}")
         return str(valid_numbers[0]) if valid_numbers else None
 if __name__ == "__main__":
 # Usage examples
     agent = LeetCodeAgent()
     print(agent.run("im working on a leetcode problem, problem 23rd exactly, can you guide me through it"))
+else:
+    # Expose a module-level client compatible with callers expecting .run(task)
+    client = LeetCodeAgent()

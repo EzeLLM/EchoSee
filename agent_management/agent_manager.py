@@ -13,6 +13,9 @@ import threading
 from utils.utils import open_yaml
 from event_manager import tools as event_tools
 import CONSTANTS
+from logger import logger as _logger
+
+log = _logger.Logger("agent_manager")
 class AgentManager:
     def __init__(self):
         # Set up tools
@@ -27,6 +30,7 @@ class AgentManager:
         
         # Create React agent
         self.prompt = llm_config["system_prompt"]
+        log.info(f"Creating ReAct agent with tools: {[getattr(t, 'name', str(t)) for t in self.tools]}")
         self.agent = create_react_agent(llm, tools=self.tools, prompt=self.prompt)
         self.clear_timer = None
     def _reset_history_timer(self):
@@ -52,18 +56,26 @@ class AgentManager:
         # Add current message to the running list
         current_message = HumanMessage(content=message)
         self.agent_messages.append(current_message)
+        log.debug(f"Processing message. Total messages in context: {len(self.agent_messages)}")
         
         # Get response from agent using maintained message list
-        response = self.agent.invoke({"messages": self.agent_messages})
+        try:
+            log.info("Invoking agent with latest user message")
+            response = self.agent.invoke({"messages": self.agent_messages})
+        except Exception as exc:
+            log.error(f"Agent invocation failed: {exc}")
+            raise
         
         # Add agent responses to running message list
         self.agent_messages.extend(response["messages"])
+        log.debug(f"Agent returned {len(response['messages'])} messages")
         
         # Store only this turn in history
         self.conversation_history.append({
             "input": [current_message],
             "output": response["messages"]
         })
+        log.info(f"Turn appended to history. Total turns: {len(self.conversation_history)}")
 
         
         return response["messages"]
