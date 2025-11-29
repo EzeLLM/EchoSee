@@ -6,7 +6,10 @@ before the application starts, providing clear error messages if any are missing
 
 import os
 import sys
+import logging
 from typing import List, Tuple
+
+logger = logging.getLogger(__name__)
 
 
 def validate_required_env_vars() -> Tuple[bool, List[str]]:
@@ -36,8 +39,8 @@ def validate_required_env_vars() -> Tuple[bool, List[str]]:
             required.append('DEEPSEEK_API_KEY')
 
     except Exception as e:
-        print(f"Warning: Could not read config.yml to check provider requirements: {e}")
-        print("Proceeding with basic validation...")
+        logger.warning(f"Could not read config.yml to check provider requirements: {e}")
+        logger.info("Proceeding with basic validation...")
 
     missing = [var for var in required if not os.getenv(var)]
     return len(missing) == 0, missing

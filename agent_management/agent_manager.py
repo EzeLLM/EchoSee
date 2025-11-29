@@ -1,6 +1,4 @@
 from langchain_openai import ChatOpenAI
-from agent_management import agents
-import agent_management.helpers.Echonoti.agent as echonoti_agent
 import os
 import dotenv
 from typing import List, Dict
@@ -11,13 +9,30 @@ from utils.utils import llm, llm_config
 from langchain_core.tools import tool
 import threading
 from core.config_manager import config
-from event_manager import tools as event_tools
+
+# Import tools from new organized structure
+from agent_management.tools import time_tools, search_tools, event_tools, notification_tools, code_tools
 
 class AgentManager:
     def __init__(self):
         # Set up tools
         self.config = config.get_section('AgentManager')
-        self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,event_tools.stop_alarm, agents.leetcode_agent,echonoti_agent.send_notification,agents.robust_search]
+        self.tools = [
+            # Time tools
+            time_tools.get_current_time,
+            time_tools.get_current_date,
+            # Search tools
+            search_tools.search,
+            search_tools.robust_search,
+            # Event tools
+            event_tools.set_alarm_at_specific_time,
+            event_tools.set_alarm_with_time_delta,
+            event_tools.stop_alarm,
+            # Notification tools
+            notification_tools.send_notification,
+            # Code tools
+            code_tools.leetcode_agent,
+        ]
         
         # Initialize conversation history
         self.conversation_history: List[Dict[str, List[BaseMessage]]] = []

@@ -1,8 +1,11 @@
 """Application context for managing global state and lifecycle."""
 
 import atexit
+import logging
 from typing import Optional
 from event_manager.event_manager import EventManager
+
+logger = logging.getLogger(__name__)
 
 
 class ApplicationContext:
@@ -55,10 +58,10 @@ class ApplicationContext:
         if not self._is_running:
             return
 
-        print("Exiting...")
+        logger.info("Shutting down application context...")
         if self._event_manager:
             self._event_manager.stop()
-            print("Event manager stopped.")
+            logger.info("Event manager stopped.")
 
         self._is_running = False
 

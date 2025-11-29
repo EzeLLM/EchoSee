@@ -85,31 +85,7 @@ def search(query:str, time_range:str,return_raw_results) -> str:
         return ''.join(result).strip()
     
     return response.get('answer', 'No answer available')
-    
-# @tool
-# def compute(code:str) -> int:
-#     """
-#     Gets python code and executes it.
-#     If you want it to return a value, you must explicitly return the value. also you can import python internal libraries.
-#     Parameters:
-#         code: The python code to execute.
-#     Returns:
-#         The result of the code.
-#     """
-#     return exec(code)
 
-
-# @tool
-# def code_agent(task:str) -> str:
-#     """
-#     Uses a code agent to solve the task. Should be used for complex tasks that require multiple steps or code execution. Do not use this tool for simple tasks.
-#     Parameters:
-#         task: The task to solve.
-#     Returns:
-#         The solution to the task.
-#     """
-#     agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=litellm_llm)
-#     return agent.run(task)
 
 @tool
 def leetcode_agent(task:str) -> str:

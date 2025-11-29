@@ -1,14 +1,12 @@
+"""Text-to-Speech service using provider abstraction."""
+
 import sounddevice as sd
-import soundfile as sf
-from IPython.display import Audio
-import numpy as np
-import io
-from pathlib import Path
+import logging
+from core.audio_providers import AudioProviderFactory
 from core.config_manager import config
-from core.clients import clients
-import os
-import dotenv
-dotenv.load_dotenv()
+
+logger = logging.getLogger(__name__)
+
 
 def list_audio_devices():
     """Display all available audio output devices."""
@@ -27,190 +25,86 @@ def list_audio_devices():
 
     return devices
 
+
 class TTS:
-    """Text-to-Speech class supporting both Kokoro and OpenAI TTS engines."""
+    """Text-to-Speech service using provider abstraction.
+
+    Supports multiple TTS providers (OpenAI, Kokoro, etc.) via AudioProviderFactory.
+    The provider is selected based on the 'method' setting in config.yml.
+    """
 
     def __init__(self, lang_code=None, voice=None):
-        self.config = config.get_section('TTS')
-        if lang_code is not None:
-            self.config['lang_code'] = lang_code
-        if voice is not None:
-            self.config['voice'] = voice
-        
-        self.method = self.config.get('method', 'kokoro')
-        self.initialized = False
-        self.sample_rate = 24000  # Default for Kokoro
-        
-        if self.method == 'kokoro':
-            self._init_kokoro()
-        elif self.method == 'openai':
-            self._init_openai()
-        else:
-            raise ValueError(f"Unsupported TTS method: {self.method}")
+        """Initialize TTS with optional overrides.
 
-    def _init_kokoro(self):
-        """Initialize Kokoro TTS engine."""
-        try:
-            from kokoro import KPipeline
-            self.lang_code = self.config.get('lang_code', 'a')
-            self.voice = self.config.get('voice', 'af_heart')
-            self.pipeline = KPipeline(lang_code=self.lang_code)
-            self.initialized = True
-        except Exception as e:
-            print(f"Kokoro initialization failed: {e}")
-            self.initialized = False
-
-    def _init_openai(self):
-        """Initialize OpenAI TTS engine."""
-        try:
-            self.client = clients.openai
-            self.voice = self.config.get('voice', 'coral')
-            self.model = self.config.get('model', 'gpt-4o-mini-tts')
-            self.response_format = self.config.get('response_format', 'mp3')
-            self.speed = self.config.get('speed', 1.0)
-            
-            # Validate response format
-            valid_formats = ['pcm', 'mp3', 'opus', 'aac', 'flac', 'wav']
-            if self.response_format not in valid_formats:
-                raise ValueError(f"Invalid response format. Choose from {valid_formats}")
-                
-            self.initialized = True
-            self.sample_rate = 24000 if self.response_format == 'pcm' else None
-        except Exception as e:
-            print(f"OpenAI initialization failed: {e}")
-            self.initialized = False
-
-    def generate(self, text, voice=None, speed=None, split_pattern=r'\n+'):
-        """Generate audio from text using configured TTS engine."""
-        if not self.initialized:
-            print("TTS engine not initialized")
-            return []
-
-        if self.method == 'kokoro':
-            return self._generate_kokoro(text, voice, speed, split_pattern)
-        return self._generate_openai(text, voice, speed)
-
-    def _generate_kokoro(self, text, voice=None, speed=None, split_pattern=None):
-        """Generate audio using Kokoro."""
-        voice = voice or self.voice
-        generator = self.pipeline(
-            text, 
-            voice=voice,
-            speed=speed or 1.0, 
-            split_pattern=split_pattern
-        )
-        return [audio for _, _, audio in generator]
-
-    def _generate_openai(self, text, voice=None, speed=None):
-        """Generate audio using OpenAI."""
-        response = self.client.audio.speech.create(
-            model=self.model,
-            voice=self.voice,
-            input=text,
-            speed=self.speed,
-            response_format=self.response_format,
-            instructions="""Voice: friendly, realistic, and engaging
-            Tone: friendly, engaging, and conversational
-            Delivery: normal, conversational, and engaging"""
-        )
-        
-        audio_bytes = response.content
-        
-        # Convert audio bytes to numpy array
-        if self.response_format == 'pcm':
-            audio_array = np.frombuffer(audio_bytes, dtype=np.int16)
-            audio_array = audio_array.astype(np.float32) / 32768.0
-            self.sample_rate = 24000
-        else:
-            with io.BytesIO(audio_bytes) as f:
-                data, sr = sf.read(f)
-                self.sample_rate = int(sr)
-                audio_array = data.T if data.ndim > 1 else data
-                
-        return [audio_array]
-
-    def play(self, text, voice=None, speed=None, split_pattern=r'\n+'):
-        """Generate and play audio."""
-        audio_segments = self.generate(text, voice, speed, split_pattern)
-        return [Audio(data=audio, rate=self.sample_rate) for audio in audio_segments]
-
-    def save(self, text, filename_prefix="audio", voice=None, speed=None, split_pattern=r'\n+'):
-        """Generate and save audio to file."""
-        if not self.initialized:
-            return []
-            
-        if self.method == 'kokoro':
-            return self._save_kokoro(text, filename_prefix, voice, speed, split_pattern)
-        return self._save_openai(text, filename_prefix, voice, speed)
-
-    def _save_kokoro(self, text, filename_prefix, voice, speed, split_pattern):
-        """Save audio using Kokoro."""
-        filenames = []
-        generator = self.pipeline(
-            text, 
-            voice=voice or self.voice,
-            speed=speed or 1.0, 
-            split_pattern=split_pattern
-        )
-        for i, (_, _, audio) in enumerate(generator):
-            filename = f"{filename_prefix}_{i}.wav"
-            sf.write(filename, audio, self.sample_rate)
-            filenames.append(filename)
-        return filenames
-
-    def _save_openai(self, text, filename_prefix, voice, speed):
-        """Save audio using OpenAI."""
-        response = self.client.audio.speech.create(
-            model=self.model,
-            voice=voice or self.voice,
-            input=text,
-            speed=speed or self.speed,
-            response_format=self.response_format,
-        )
-        
-        ext = 'wav' if self.response_format == 'pcm' else self.response_format
-        filename = f"{filename_prefix}_0.{ext}"
-        
-        if self.response_format == 'pcm':
-            audio_array = np.frombuffer(response.content, dtype=np.int16)
-            sf.write(filename, audio_array, 24000)
-        else:
-            with open(filename, 'wb') as f:
-                f.write(response.content)
-                
-        return [filename]
-
-    def play_with_device(self, text, device=None, voice=None, speed=None, split_pattern=r'\n+'):
-        """Play audio through a specific output device.
-
-        If ``device`` is ``None`` (default), the current system default output
-        device is used, so the caller doesn't need to specify it manually.
+        Args:
+            lang_code: Optional language code override (for Kokoro)
+            voice: Optional voice override
         """
+        # Get TTS config
+        tts_config = config.get_section('TTS').copy()
 
-        # Resolve to system default output device when none is provided
+        # Apply overrides if provided
+        if lang_code is not None:
+            tts_config['lang_code'] = lang_code
+        if voice is not None:
+            tts_config['voice'] = voice
+
+        # Create provider based on config
+        self.provider = AudioProviderFactory.create_tts_provider(tts_config)
+        self.sample_rate = self.provider.get_sample_rate()
+
+    def generate(self, text: str, **kwargs):
+        """Generate audio from text.
+
+        Args:
+            text: Text to convert to speech
+            **kwargs: Provider-specific parameters (voice, speed, split_pattern, etc.)
+
+        Returns:
+            List of audio arrays
+        """
+        return self.provider.generate(text, **kwargs)
+
+    def play_with_device(self, text: str, device=None, **kwargs):
+        """Generate and play audio through specific device.
+
+        Args:
+            text: Text to convert to speech
+            device: Audio device ID (None for default)
+            **kwargs: Provider-specific parameters
+        """
         if device is None:
-            # ``sd.default.device`` can be a single int or a tuple ``(input, output)``
             try:
                 default_device = sd.default.device
                 device = default_device[1] if isinstance(default_device, tuple) else default_device
             except Exception:
-                # Fallback to -1 which lets sounddevice decide the default
                 device = -1
 
-        audio_segments = self.generate(text, voice, speed, split_pattern)
+        audio_segments = self.generate(text, **kwargs)
         for audio in audio_segments:
             sd.play(audio, self.sample_rate, device=device)
             sd.wait()
 
-    def list_devices(self):
-        """List available audio devices."""
+    @staticmethod
+    def list_devices():
+        """List available audio devices.
+
+        Returns:
+            List of audio device info
+        """
         return list_audio_devices()
 
-if __name__ == "__main__":
 
-    
-    # Initialize TTS with desired configuration
-    
+if __name__ == '__main__':
+    # Test TTS
     tts = TTS()
-    print(tts.list_devices())
-    tts.play_with_device("tabi, ben seni seviyorum. seni hep seveceğim.")
+    print(f"Initialized TTS with sample rate: {tts.sample_rate}")
+
+    # List devices
+    print("\nAvailable devices:")
+    TTS.list_devices()
+
+    # Test generation (but don't play to avoid noise in tests)
+    test_text = "Hello, this is a test."
+    audio_segments = tts.generate(test_text)
+    print(f"\nGenerated {len(audio_segments)} audio segment(s) for: '{test_text}'")

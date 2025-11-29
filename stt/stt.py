@@ -1,43 +1,56 @@
+"""Speech-to-Text service using provider abstraction."""
+
 import tempfile
+import logging
 from core.config_manager import config
-from core.clients import clients
+from core.audio_providers import AudioProviderFactory
 import threading
 import pyaudio
 import readchar
-import dotenv
 import os
 import subprocess
-import io
 
-dotenv.load_dotenv()
+logger = logging.getLogger(__name__)
 
-class STT():
+
+class STT:
+    """Speech-to-Text service using provider abstraction.
+
+    Handles audio recording and transcription. The transcription provider
+    is selected based on configuration (currently OpenAI Whisper).
+    """
+
     def __init__(self):
-        self.config = config.get_section('STT')
-        self.client = clients.openai
-        self.sample_rate = self.config.get('sample_rate', 16000)
-        self.channels = self.config.get('channels', 1)
+        """Initialize STT service."""
+        stt_config = config.get_section('STT')
+
+        # Create STT provider
+        self.provider = AudioProviderFactory.create_stt_provider(stt_config)
+
+        # Audio recording settings
+        self.sample_rate = stt_config.get('sample_rate', 16000)
+        self.channels = stt_config.get('channels', 1)
         self.format = pyaudio.paInt16
         self.chunk = 1024
         self.recording = False
-        
+
         # Initialize PyAudio in try/except to handle potential initialization errors
         try:
             self.p = pyaudio.PyAudio()
         except Exception as e:
-            print(f"Warning: Could not initialize PyAudio: {e}")
+            logger.warning(f"Could not initialize PyAudio: {e}")
             self.p = None
-        
-    def transcribe(self, audio_file_path):
-        """Transcribe audio file using OpenAI's API"""
-        with open(audio_file_path, 'rb') as audio_file:
-            transcription = self.client.audio.transcriptions.create(
-                model=self.config['model'],
-                file=audio_file,
-                prompt=self.config['prompt']
-            )
-        
-        return transcription.text
+
+    def transcribe(self, audio_file_path: str) -> str:
+        """Transcribe audio file using configured provider.
+
+        Args:
+            audio_file_path: Path to audio file
+
+        Returns:
+            Transcribed text
+        """
+        return self.provider.transcribe(audio_file_path)
     
     def record_with_key(self, key=' '):
         """Record while a key is held down and encode directly to MP3"""

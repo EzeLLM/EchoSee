@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import asyncio
+import logging
 from dataclasses import dataclass
 from typing import List
 
@@ -11,6 +12,8 @@ from sklearn.cluster import KMeans
 from core.clients import clients
 from langchain_core.messages import HumanMessage, SystemMessage
 from utils.utils import llm, high_performance_llm  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -53,8 +56,8 @@ class SearchClient:
         self._embed([user_query])
 
         queries = self._generate_queries(user_query)
-        print(queries)
-        print("--------------------------------")
+        logger.debug(f"Generated queries: {queries}")
+        logger.debug("--------------------------------")
         raw_results = asyncio.run(self._collect_search_results(queries, recent))
         # print(raw_results)
         # print("--------------------------------")
@@ -136,9 +139,9 @@ Follow these rules exactly every time you are invoked.
         """
         resp = self.hp_llm.invoke([SystemMessage(content=system_prompt),HumanMessage(content=prompt)])
         pool = [line.strip() for line in resp.content.splitlines() if line.strip()]
-        print("The original queries are:")
-        print(pool)
-        print("--------------------------------")
+        logger.debug("The original queries are:")
+        logger.debug(f"{pool}")
+        logger.debug("--------------------------------")
         # dedupe while preserving order
         deduped = list(dict.fromkeys(pool))
 
@@ -173,9 +176,9 @@ Follow these rules exactly every time you are invoked.
             
             final_queries.append(cluster_queries[closest_to_centroid_idx])
 
-        print("The final queries are (using centroid method):")
-        print(final_queries)
-        print("--------------------------------")
+        logger.debug("The final queries are (using centroid method):")
+        logger.debug(f"{final_queries}")
+        logger.debug("--------------------------------")
         return final_queries
 
     async def _collect_search_results(self, queries: List[str], recent: bool) -> List[dict]:

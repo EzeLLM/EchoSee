@@ -8,6 +8,9 @@ LLMs and config are now managed by core modules (core/llm_factory.py, core/confi
 
 import yaml
 import dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -43,13 +46,13 @@ def open_yaml(file_path, key=None):
             data = yaml.safe_load(file)
             return data.get(key) if key else data
     except FileNotFoundError:
-        print(f"File {file_path} not found.")
+        logger.error(f"File {file_path} not found.")
         return None
     except yaml.YAMLError as e:
-        print(f"Error parsing {file_path}: {e}")
+        logger.error(f"Error parsing {file_path}: {e}")
         return None
     except AttributeError:
-        print(f"Key {key} not found in file {file_path}.")
+        logger.error(f"Key {key} not found in file {file_path}.")
         return None
 
 
