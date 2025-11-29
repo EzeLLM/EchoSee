@@ -11,6 +11,7 @@ from langchain_core.tools import tool
 import threading
 from core.config_manager import config
 from core.conversation_storage import ConversationStorage
+from core.mcp_client import mcp_manager, get_mcp_tools
 
 # Import tools from new organized structure
 from agent_management.tools import time_tools, search_tools, event_tools, notification_tools, code_tools
@@ -37,6 +38,8 @@ class AgentManager:
         if enable_persistence:
             self.storage = ConversationStorage()
             logger.info("Conversation persistence enabled")
+        
+        # Built-in tools
         self.tools = [
             # Time tools
             time_tools.get_current_time,
@@ -54,6 +57,9 @@ class AgentManager:
             code_tools.leetcode_agent,
         ]
         
+        # Load MCP tools if enabled
+        self._load_mcp_tools()
+        
         # Initialize conversation history
         self.conversation_history: List[Dict[str, List[BaseMessage]]] = []
         
@@ -70,6 +76,31 @@ class AgentManager:
         self.prompt = llm_section["system_prompt"]
         self.agent = create_react_agent(llm, tools=self.tools, prompt=self.prompt)
         self.clear_timer = None
+
+    def _load_mcp_tools(self) -> None:
+        """Load tools from configured MCP servers.
+        
+        This method attempts to connect to MCP servers defined in config.yml
+        and adds their tools to the agent's tool list.
+        """
+        if not mcp_manager.enabled:
+            logger.debug("MCP is disabled or not available")
+            return
+        
+        if not mcp_manager.has_servers:
+            logger.debug("No MCP servers configured")
+            return
+        
+        try:
+            mcp_tools = get_mcp_tools()
+            if mcp_tools:
+                self.tools.extend(mcp_tools)
+                logger.info(f"Loaded {len(mcp_tools)} tools from MCP servers: {[t.name for t in mcp_tools]}")
+            else:
+                logger.debug("No MCP tools loaded")
+        except Exception as e:
+            logger.warning(f"Failed to load MCP tools: {e}")
+            # Continue without MCP tools - they're optional
 
     def _load_context_from_storage(self, max_turns: int):
         """Load recent conversation context from storage.
@@ -107,6 +138,10 @@ class AgentManager:
             
         Returns:
             List of response messages
+        
+        Note:
+            If MCP tools are loaded, this uses async invocation internally
+            to support async-only MCP tools.
         """
         # Reset history timer
         self._reset_history_timer()
@@ -114,8 +149,36 @@ class AgentManager:
         current_message = HumanMessage(content=message)
         self.agent_messages.append(current_message)
         
-        # Get response from agent using maintained message list
-        response = self.agent.invoke({"messages": self.agent_messages})
+        # Check if we have MCP tools (they require async invocation)
+        has_mcp_tools = any(
+            hasattr(t, '_run') and not hasattr(t, '_arun') 
+            or (hasattr(t, 'coroutine') and t.coroutine)
+            for t in self.tools
+        )
+        
+        # Use async invocation if MCP tools are present
+        if mcp_manager.is_connected or has_mcp_tools:
+            import asyncio
+            try:
+                # Try to get existing event loop (may be running from async context)
+                try:
+                    loop = asyncio.get_running_loop()
+                    import nest_asyncio
+                    nest_asyncio.apply()
+                except RuntimeError:
+                    # No running loop, create new one
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                response = loop.run_until_complete(
+                    self.agent.ainvoke({"messages": self.agent_messages})
+                )
+            except Exception as e:
+                logger.warning(f"Async invocation failed: {e}, falling back to sync")
+                response = self.agent.invoke({"messages": self.agent_messages})
+        else:
+            # Get response from agent using maintained message list
+            response = self.agent.invoke({"messages": self.agent_messages})
         
         # Add agent responses to running message list
         self.agent_messages.extend(response["messages"])
@@ -161,6 +224,10 @@ class AgentManager:
 
         Yields:
             Text chunks from the assistant's response
+        
+        Note:
+            If MCP tools are loaded, this uses async streaming internally
+            to support async-only MCP tools.
         """
         from langchain_core.messages import AIMessage, AIMessageChunk
 
@@ -176,9 +243,39 @@ class AgentManager:
         tool_calls = []
         yielded_anything = False
 
+        # Check if we need async streaming (for MCP tools)
+        use_async = mcp_manager.is_connected
+
         try:
-            # Stream response from agent using stream_mode for token streaming
-            for event in self.agent.stream({"messages": self.agent_messages}, stream_mode="updates"):
+            if use_async:
+                # Use async streaming for MCP tools
+                import asyncio
+                try:
+                    loop = asyncio.get_running_loop()
+                    import nest_asyncio
+                    nest_asyncio.apply()
+                except RuntimeError:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                
+                async def async_stream():
+                    async for event in self.agent.astream({"messages": self.agent_messages}, stream_mode="updates"):
+                        yield event
+                
+                # Collect async results
+                async def collect_stream():
+                    results = []
+                    async for event in async_stream():
+                        results.append(event)
+                    return results
+                
+                events = loop.run_until_complete(collect_stream())
+                stream_iterator = iter(events)
+            else:
+                # Stream response from agent using stream_mode for token streaming
+                stream_iterator = self.agent.stream({"messages": self.agent_messages}, stream_mode="updates")
+            
+            for event in stream_iterator:
                 # LangGraph returns updates per node
                 # Each event is a dict with node name as key
                 for node_name, node_output in event.items():
