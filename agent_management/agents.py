@@ -5,9 +5,9 @@ dotenv.load_dotenv()
 from logger import logger
 logger = logger.Logger('agent')
 from utils.utils import litellm_llm, llm
-from tavily import TavilyClient
+from core.clients import clients
 from datetime import datetime
-from agent_management.helpers.leetcode.agent import client as leetcode_client
+from agent_management.helpers.LeetCode.agent import client as leetcode_client
 from agent_management.helpers.search.SearchClient import search_agent as _robust_search_agent
 
 
@@ -72,10 +72,10 @@ def search(query:str, time_range:str,return_raw_results) -> str:
         search_params['include_answer'] = 'basic'
 
     # Execute search
-    client = TavilyClient(os.environ['TAVILY_API_KEY'])
+    tavily_client = clients.tavily
     print(f"Searching for '{query}' (time range: '{time_range}'), return raw: {return_raw_results}")
-    
-    response = client.search(**search_params)
+
+    response = tavily_client.search(**search_params)
 
     # Process results
     if return_raw_results:
@@ -85,31 +85,7 @@ def search(query:str, time_range:str,return_raw_results) -> str:
         return ''.join(result).strip()
     
     return response.get('answer', 'No answer available')
-    
-# @tool
-# def compute(code:str) -> int:
-#     """
-#     Gets python code and executes it.
-#     If you want it to return a value, you must explicitly return the value. also you can import python internal libraries.
-#     Parameters:
-#         code: The python code to execute.
-#     Returns:
-#         The result of the code.
-#     """
-#     return exec(code)
 
-
-# @tool
-# def code_agent(task:str) -> str:
-#     """
-#     Uses a code agent to solve the task. Should be used for complex tasks that require multiple steps or code execution. Do not use this tool for simple tasks.
-#     Parameters:
-#         task: The task to solve.
-#     Returns:
-#         The solution to the task.
-#     """
-#     agent = CodeAgent(tools=[DuckDuckGoSearchTool()], model=litellm_llm)
-#     return agent.run(task)
 
 @tool
 def leetcode_agent(task:str) -> str:

@@ -1,18 +1,22 @@
 import logging
 import os
-from utils.utils import open_yaml
+from core.config_manager import config
+
 class Logger:
     def __init__(self, filename: str):
-        self.config = open_yaml('config.yml', 'logger')
-        self.logs_dir = self.config['LOGS']
+        logger_config = config.get_section('logger')
+        self.logs_dir = logger_config['LOGS']
         os.makedirs(self.logs_dir, exist_ok=True)
         self.filename = os.path.join(self.logs_dir, f'{filename}.log')
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger(filename)  # Use named logger instead of root
         self.logger.setLevel(logging.DEBUG)
         self.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-        self.file_handler = logging.FileHandler(self.filename)
-        self.file_handler.setFormatter(self.formatter)
-        self.logger.addHandler(self.file_handler)
+
+        # Only add handler if this logger doesn't already have handlers
+        if not self.logger.handlers:
+            self.file_handler = logging.FileHandler(self.filename)
+            self.file_handler.setFormatter(self.formatter)
+            self.logger.addHandler(self.file_handler)
 
     def debug(self, message):
         self.logger.debug(message)
