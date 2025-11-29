@@ -1,9 +1,77 @@
 """Centralized configuration management with singleton pattern."""
 
+import os
 import yaml
-from typing import Any, Dict, Optional
+import logging
+from typing import Any, Dict, List, Optional
 from pathlib import Path
 import threading
+
+logger = logging.getLogger(__name__)
+
+
+class ConfigValidator:
+    """Validate configuration structure and values."""
+
+    @staticmethod
+    def validate(config: Dict[str, Any]) -> List[str]:
+        """Validate config and return list of errors.
+
+        Args:
+            config: Configuration dictionary to validate
+
+        Returns:
+            List of validation error messages (empty if valid)
+        """
+        errors = []
+
+        # Check required sections
+        required_sections = ['LLM', 'TTS', 'STT', 'AgentManager']
+        for section in required_sections:
+            if section not in config:
+                errors.append(f"Missing required section: {section}")
+
+        # Validate LLM config
+        if 'LLM' in config:
+            llm = config['LLM']
+            if 'provider' not in llm:
+                errors.append("LLM.provider is required")
+            elif llm['provider'] not in ['openai', 'deepseek']:
+                errors.append(f"Invalid LLM.provider: {llm['provider']}")
+
+            if 'model' not in llm:
+                errors.append("LLM.model is required")
+
+            # Check API keys for providers
+            if llm.get('provider') == 'openai' and not os.getenv('OPENAI_API_KEY'):
+                errors.append("OPENAI_API_KEY required for OpenAI provider")
+            if llm.get('provider') == 'deepseek' and not os.getenv('DEEPSEEK_API_KEY'):
+                errors.append("DEEPSEEK_API_KEY required for DeepSeek provider")
+
+        # Validate TTS config
+        if 'TTS' in config:
+            tts = config['TTS']
+            if 'method' not in tts:
+                errors.append("TTS.method is required")
+            elif tts['method'] not in ['openai', 'kokoro']:
+                errors.append(f"Invalid TTS.method: {tts['method']}")
+
+        # Validate STT config
+        if 'STT' in config:
+            stt = config['STT']
+            if 'sample_rate' in stt and not isinstance(stt['sample_rate'], int):
+                errors.append("STT.sample_rate must be an integer")
+
+        # Validate AgentManager config
+        if 'AgentManager' in config:
+            am = config['AgentManager']
+            if 'clear_time' in am:
+                if not isinstance(am['clear_time'], (int, float)):
+                    errors.append("AgentManager.clear_time must be a number")
+                elif am['clear_time'] <= 0:
+                    errors.append("AgentManager.clear_time must be positive")
+
+        return errors
 
 
 class ConfigManager:
@@ -28,15 +96,16 @@ class ConfigManager:
         self._config_path = Path("config.yml")
         self._initialized = True
 
-    def load(self, config_path: Optional[str] = None) -> None:
+    def load(self, config_path: Optional[str] = None, validate: bool = True) -> None:
         """Load configuration from YAML file.
 
         Args:
             config_path: Optional path to config file. If None, uses default 'config.yml'
+            validate: Whether to validate config after loading (default True)
 
         Raises:
             FileNotFoundError: If config file doesn't exist
-            ValueError: If YAML is invalid
+            ValueError: If YAML is invalid or validation fails
         """
         if config_path:
             self._config_path = Path(config_path)
@@ -48,6 +117,16 @@ class ConfigManager:
             raise FileNotFoundError(f"Config file not found: {self._config_path}")
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in config file: {e}")
+
+        # Validate after loading
+        if validate:
+            errors = ConfigValidator.validate(self._config)
+            if errors:
+                error_msg = "Configuration validation failed:\n" + "\n".join(
+                    f"  - {e}" for e in errors
+                )
+                logger.error(error_msg)
+                raise ValueError(error_msg)
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value by key (supports nested keys like 'LLM.model').

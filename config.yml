@@ -34,6 +34,8 @@ STT:
 
 AgentManager:
   clear_time: 30 # time to clear the conversation history if idle in minutes
+  persistence_enabled: true # save conversations to database
+  max_context_turns: 5 # how many past turns to inject on startup
 
 callbacks:
   alarm:
