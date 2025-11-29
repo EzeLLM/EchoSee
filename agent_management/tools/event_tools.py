@@ -70,24 +70,27 @@ def set_alarm_with_time_delta(delta: str) -> bool:
         - True: Alarm successfully set
         - False: Alarm already exists or invalid input format
     """
+    try:
         # Split duration into components
-    days, hours, minutes, seconds = map(int, delta.split(':'))
-    
-    # Create timedelta object
-    delta_td = timedelta(
-        days=days,
-        hours=hours,
-        minutes=minutes,
-        seconds=seconds
-    )
-    
-    event_time = datetime.now() + delta_td
-    state = em.add_event(event_time=event_time, callback=alarm.alarm)
-    
-    if state != -1:
-        event_ids.append(state)
-        return True
-    return False
+        days, hours, minutes, seconds = map(int, delta.split(':'))
+        
+        # Create timedelta object
+        delta_td = timedelta(
+            days=days,
+            hours=hours,
+            minutes=minutes,
+            seconds=seconds
+        )
+        
+        event_time = datetime.now() + delta_td
+        state = em.add_event(event_time=event_time, callback=alarm.alarm)
+        
+        if state != -1:
+            event_ids.append(state)
+            return True
+        return False
+    except (ValueError, AttributeError):
+        return False
 
 @tool
 def stop_alarm() -> None:

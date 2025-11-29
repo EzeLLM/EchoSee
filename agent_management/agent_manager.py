@@ -136,7 +136,12 @@ class AgentManager:
                 tool_calls = []
                 for msg in response["messages"]:
                     if hasattr(msg, 'tool_calls') and msg.tool_calls:
-                        tool_calls.extend([tc.get('name', 'unknown') for tc in msg.tool_calls])
+                        for tc in msg.tool_calls:
+                            # Handle both ToolCall objects and dict representations
+                            if isinstance(tc, dict):
+                                tool_calls.append(tc.get('name', 'unknown'))
+                            else:
+                                tool_calls.append(getattr(tc, 'name', 'unknown'))
                 
                 metadata = {"tool_calls": tool_calls} if tool_calls else None
                 self.storage.save_turn(message, assistant_msg, metadata)
@@ -183,7 +188,12 @@ class AgentManager:
 
                             # Track tool calls
                             if hasattr(msg, 'tool_calls') and msg.tool_calls:
-                                tool_calls.extend([tc.get('name', 'unknown') for tc in msg.tool_calls])
+                                for tc in msg.tool_calls:
+                                    # Handle both ToolCall objects and dict representations
+                                    if isinstance(tc, dict):
+                                        tool_calls.append(tc.get('name', 'unknown'))
+                                    else:
+                                        tool_calls.append(getattr(tc, 'name', 'unknown'))
 
                             # Stream AI message content
                             if isinstance(msg, (AIMessage, AIMessageChunk)):

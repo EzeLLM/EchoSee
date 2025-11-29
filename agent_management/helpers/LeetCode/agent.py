@@ -7,12 +7,12 @@ from utils.utils import llm
 from utils.cot import TemplatedCOTChain
 from typing import Literal
 import re
-from agent_management.helpers.LeetCode.LeetCodeAPI import client
+from agent_management.helpers.LeetCode.LeetCodeAPI import client as leetcode_api
 
 
 def get_problem_context(problem_code):
     """Get problem context from LeetCode API."""
-    return client.retrieve(problem_code)
+    return leetcode_api.retrieve(problem_code)
 
 
 solution_template = """Task:

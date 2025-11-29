@@ -56,60 +56,8 @@ def open_yaml(file_path, key=None):
         return None
 
 
-# Backward-compatible exports for LLMs (lazy-loaded via LLMFactory)
-@property
-def llm():
-    """Standard LLM instance (lazy-loaded).
-
-    Returns:
-        BaseChatModel configured from config
-    """
-    return get_llm('standard')
-
-
-@property
-def high_performance_llm():
-    """High-performance LLM instance (lazy-loaded).
-
-    Returns:
-        BaseChatModel configured from config
-    """
-    return get_llm('high_performance')
-
-
-@property
-def litellm_llm():
-    """Agent LLM instance for smolagents (lazy-loaded).
-
-    Returns:
-        LiteLLMModel configured from config
-    """
-    return get_llm('agent')
-
-
-# Backward-compatible config exports (use ConfigManager)
-@property
-def tts_config():
-    """TTS configuration section.
-
-    DEPRECATED: Use core.config_manager.config.get_section('TTS') instead.
-
-    Returns:
-        TTS configuration dict
-    """
-    return _config_manager.get_section('TTS')
-
-
-@property
-def llm_config():
-    """LLM configuration section.
-
-    DEPRECATED: Use core.config_manager.config.get_section('LLM') instead.
-
-    Returns:
-        LLM configuration dict
-    """
-    return _config_manager.get_section('LLM')
+# Note: Module-level @property decorators don't work - they only work on class methods.
+# The following functions are kept for reference but actual exports use direct assignment below.
 
 
 def get_event_manager():
@@ -141,7 +89,26 @@ def get_litellm():
         _litellm_llm = get_llm('agent')
     return _litellm_llm
 
-litellm_llm = property(lambda self: get_litellm())
+# Backward-compatible export - alias to the getter function
+# Code that imports litellm_llm should call it as litellm_llm() to get the instance
+litellm_llm = get_litellm
+
+# Backward-compatible config exports
+# These are functions that return the config sections
+def tts_config():
+    """Get TTS configuration section.
+    
+    DEPRECATED: Use core.config_manager.config.get_section('TTS') instead.
+    """
+    return _config_manager.get_section('TTS')
+
+
+def llm_config():
+    """Get LLM configuration section.
+    
+    DEPRECATED: Use core.config_manager.config.get_section('LLM') instead.
+    """
+    return _config_manager.get_section('LLM')
 
 
 # Event manager instance (lazy-loaded via app_context)

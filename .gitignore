@@ -36,3 +36,4 @@ echonoti/src/lib/db.json
 /echonoti/src/lib/db.json
 /echonoti/node_modules
 *.log
+*.db*
