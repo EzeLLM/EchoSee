@@ -1,10 +1,13 @@
 """Audio provider abstraction for STT and TTS with plugin architecture."""
 
+import logging
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Optional, Generator
 import numpy as np
 from core.config_manager import config
 from core.clients import clients
+
+logger = logging.getLogger(__name__)
 
 
 class TTSProvider(ABC):
@@ -32,9 +35,35 @@ class TTSProvider(ABC):
         """
         pass
 
+    def supports_streaming(self) -> bool:
+        """Check if provider supports streaming.
+
+        Returns:
+            True if streaming is supported
+        """
+        return False
+
+    def generate_streaming(self, text: str, **kwargs) -> Generator[bytes, None, None]:
+        """Generate audio chunks as they stream.
+
+        Args:
+            text: Text to convert to speech
+            **kwargs: Provider-specific parameters
+
+        Yields:
+            Audio bytes chunks
+
+        Raises:
+            NotImplementedError: If provider doesn't support streaming
+        """
+        raise NotImplementedError("This provider does not support streaming")
+
 
 class OpenAITTSProvider(TTSProvider):
-    """OpenAI TTS provider."""
+    """OpenAI TTS provider with streaming support."""
+
+    # OpenAI PCM streaming format: 24kHz, 16-bit signed, mono
+    PCM_SAMPLE_RATE = 24000
 
     def __init__(self, tts_config: dict):
         self.client = clients.openai
@@ -81,6 +110,55 @@ class OpenAITTSProvider(TTSProvider):
 
     def get_sample_rate(self) -> int:
         return self._sample_rate
+
+    def supports_streaming(self) -> bool:
+        """OpenAI TTS supports streaming."""
+        return True
+
+    def generate_streaming(self, text: str, **kwargs) -> Generator[bytes, None, None]:
+        """Generate audio chunks as they stream from OpenAI.
+
+        Uses PCM format for efficient streaming (no decode overhead).
+        PCM format: 24kHz, 16-bit signed little-endian, mono.
+
+        Args:
+            text: Text to convert to speech
+            **kwargs: Optional overrides (voice, speed)
+
+        Yields:
+            Raw PCM audio bytes chunks
+        """
+        try:
+            with self.client.audio.speech.with_streaming_response.create(
+                model=self.model,
+                voice=kwargs.get('voice', self.voice),
+                input=text,
+                speed=kwargs.get('speed', self.speed),
+                response_format='pcm',  # PCM for streaming - no decode overhead
+            ) as response:
+                for chunk in response.iter_bytes(chunk_size=4096):
+                    yield chunk
+        except Exception as e:
+            logger.error(f"TTS streaming error: {e}")
+            raise
+
+    def generate_streaming_array(self, text: str, **kwargs) -> Generator[np.ndarray, None, None]:
+        """Generate audio as numpy arrays from streaming.
+
+        Convenience method that converts PCM bytes to float32 arrays.
+
+        Args:
+            text: Text to convert to speech
+            **kwargs: Optional overrides (voice, speed)
+
+        Yields:
+            Audio numpy arrays (float32, normalized to [-1, 1])
+        """
+        for chunk in self.generate_streaming(text, **kwargs):
+            # Convert 16-bit PCM to float32
+            audio_array = np.frombuffer(chunk, dtype=np.int16)
+            audio_array = audio_array.astype(np.float32) / 32768.0
+            yield audio_array
 
 
 class KokoroTTSProvider(TTSProvider):

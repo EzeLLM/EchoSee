@@ -15,6 +15,7 @@ def health_command():
 
 def main():
     # Import heavy modules only when running main app
+    import logging
     from agent_management import agent_manager
     from core.config_manager import config
     from core.app_context import app_context
@@ -22,38 +23,66 @@ def main():
     from agent_management.agent_manager import AgentManager
     from langchain_core.messages import HumanMessage
     from stt.stt import STT
+
+    logger = logging.getLogger(__name__)
+
     # Initialize application context (must be first!)
     app_context.initialize()
 
     # Get TTS config
     tts_config = config.get_section('TTS')
+    streaming_enabled = tts_config.get('streaming_enabled', True)
 
-    # Initialize TTS
+    # Initialize components
     tts = TTS()
-    print("Voice Assistant started! Press Enter after typing your question (type 'quit' to exit)")
     am = AgentManager()
     stt = STT()
+
+    mode_str = "streaming" if streaming_enabled and tts.supports_streaming() else "standard"
+    print(f"Voice Assistant started ({mode_str} mode)!")
+    print("Press and hold SPACE to speak, release when done. Say 'quit' to exit.")
+
     while True:
         try:
             # Get user input
-            user_query = stt.listen_and_transcribe_key()
-            # user_query = input("You: ")
+            # user_query = stt.listen_and_transcribe_key()
+            user_query = input("You: ")
+
             # Check for quit command
             if user_query.lower() == 'quit':
                 print("Goodbye!")
                 break
-                
-            # Process query through agent
-            response = am.process_message(user_query)
-            
-            # Extract the assistant's response
-            assistant_message = response[-1].content
-            print(f"\nAssistant: {assistant_message}")
-            
-            # Convert response to speech
-            tts.play_with_device(assistant_message, device=tts_config['device'])
-            
+
+            # Process and respond based on streaming mode
+            if streaming_enabled and tts.supports_streaming():
+                # Streaming mode: play audio as LLM generates text
+                print("Assistant: ", end="", flush=True)
+
+                def text_printer(text_gen):
+                    """Wrapper to print text as it streams."""
+                    for chunk in text_gen:
+                        print(chunk, end="", flush=True)
+                        yield chunk
+                    print()  # Newline after response
+
+                text_gen = am.process_message_streaming(user_query)
+                full_text = tts.play_streaming(
+                    text_printer(text_gen),
+                    device=tts_config.get('device')
+                )
+            else:
+                # Standard mode: wait for full response then play
+                response = am.process_message(user_query)
+                assistant_message = response[-1].content
+                print(f"\nAssistant: {assistant_message}")
+                tts.play_with_device(assistant_message, device=tts_config.get('device'))
+
+        except KeyboardInterrupt:
+            print("\nInterrupted by user")
+            tts.stop_playback()
+            continue
         except Exception as e:
+            logger.error(f"Error in main loop: {e}")
             print(f"An error occurred: {e}")
             continue
 

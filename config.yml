@@ -12,12 +12,14 @@ LLM:
   high_performance_provider: openai
   high_performance_model: o4-mini
 TTS:
-  device: 2
+  device: 1
   method: openai
   voice: shimmer
   model: gpt-4o-mini-tts
   response_format: mp3 
   speed: 1.1
+  streaming_enabled: false # stream audio as LLM generates text (reduces latency)
+  sentence_buffer_chars: 50 # minimum chars before TTS processes a segment
 
 # if kokoro
 #  method: kokoro

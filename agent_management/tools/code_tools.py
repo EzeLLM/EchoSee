@@ -1,7 +1,7 @@
 """Code-related tools for the agent (LeetCode, etc.)."""
 
 from langchain_core.tools import tool
-from agent_management.helpers.leetcode.agent import client as leetcode_client
+from agent_management.helpers.LeetCode.agent import client as leetcode_client
 
 
 @tool

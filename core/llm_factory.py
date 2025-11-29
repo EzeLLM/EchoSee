@@ -2,11 +2,24 @@
 
 import os
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Any
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
-from langchain_deepseek import ChatDeepSeek
-from smolagents import LiteLLMModel
+
+# Optional imports
+try:
+    from langchain_deepseek import ChatDeepSeek
+    HAS_DEEPSEEK = True
+except ImportError:
+    HAS_DEEPSEEK = False
+    ChatDeepSeek = None
+
+try:
+    from smolagents import LiteLLMModel
+    HAS_SMOLAGENTS = True
+except ImportError:
+    HAS_SMOLAGENTS = False
+    LiteLLMModel = None
 
 from core.config_manager import config
 
@@ -26,17 +39,16 @@ class LLMProvider(ABC):
         """
         pass
 
-    @abstractmethod
-    def create_agent_model(self, model_name: str) -> LiteLLMModel:
+    def create_agent_model(self, model_name: str) -> Any:
         """Create an agent model instance (for smolagents).
 
         Args:
             model_name: Name of the model to create
 
         Returns:
-            LiteLLMModel instance
+            LiteLLMModel instance (if smolagents installed)
         """
-        pass
+        raise NotImplementedError("smolagents not installed")
 
 
 class OpenAIProvider(LLMProvider):
@@ -48,7 +60,9 @@ class OpenAIProvider(LLMProvider):
             raise ValueError("OPENAI_API_KEY not found in environment")
         return ChatOpenAI(api_key=api_key, model=model_name)
 
-    def create_agent_model(self, model_name: str) -> LiteLLMModel:
+    def create_agent_model(self, model_name: str) -> Any:
+        if not HAS_SMOLAGENTS:
+            raise ImportError("smolagents not installed")
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             raise ValueError("OPENAI_API_KEY not found in environment")
@@ -59,12 +73,16 @@ class DeepSeekProvider(LLMProvider):
     """DeepSeek LLM provider."""
 
     def create_chat_model(self, model_name: str) -> BaseChatModel:
+        if not HAS_DEEPSEEK:
+            raise ImportError("langchain_deepseek not installed")
         api_key = os.getenv('DEEPSEEK_API_KEY')
         if not api_key:
             raise ValueError("DEEPSEEK_API_KEY not found in environment")
         return ChatDeepSeek(api_key=api_key, model=model_name)
 
-    def create_agent_model(self, model_name: str) -> LiteLLMModel:
+    def create_agent_model(self, model_name: str) -> Any:
+        if not HAS_SMOLAGENTS:
+            raise ImportError("smolagents not installed")
         api_key = os.getenv('DEEPSEEK_API_KEY')
         if not api_key:
             raise ValueError("DEEPSEEK_API_KEY not found in environment")
@@ -130,14 +148,15 @@ class LLMFactory:
         return provider.create_chat_model(model_name)
 
     @classmethod
-    def create_agent_llm(cls) -> LiteLLMModel:
+    def create_agent_llm(cls) -> Any:
         """Create agent LLM (for smolagents) from config.
 
         Returns:
-            LiteLLMModel configured from config
+            LiteLLMModel configured from config (if smolagents installed)
 
         Raises:
             ValueError: If provider is unknown
+            ImportError: If smolagents not installed
         """
         llm_config = config.get_section('LLM')
         provider_name = llm_config['provider']

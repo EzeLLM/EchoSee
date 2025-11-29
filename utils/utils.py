@@ -126,38 +126,23 @@ def get_event_manager():
     return app_context.event_manager
 
 
-# Module-level exports (for backward compatibility)
-# These are NOT auto-initialized; they're created on first access
-_llm = None
-_high_performance_llm = None
+# Direct LLM initialization (env is already validated above)
+# These are actual LLM instances that work with LangChain
+llm = get_llm('standard')
+high_performance_llm = get_llm('high_performance')
+
+# Agent LLM (for smolagents) - lazy load to avoid import issues
 _litellm_llm = None
-_event_manager_instance = None
 
+def get_litellm():
+    """Get LiteLLM instance for smolagents."""
+    global _litellm_llm
+    if _litellm_llm is None:
+        _litellm_llm = get_llm('agent')
+    return _litellm_llm
 
-# For files that import directly: from utils.utils import llm
-# We need to provide actual values, not properties
-# So let's create wrapper that lazy-loads on first access
-class _LazyLLM:
-    """Wrapper for lazy-loading LLMs."""
-    def __init__(self, llm_type):
-        self._llm_type = llm_type
-        self._instance = None
+litellm_llm = property(lambda self: get_litellm())
 
-    def __getattr__(self, name):
-        if self._instance is None:
-            self._instance = get_llm(self._llm_type)
-        return getattr(self._instance, name)
-
-    def __call__(self, *args, **kwargs):
-        if self._instance is None:
-            self._instance = get_llm(self._llm_type)
-        return self._instance(*args, **kwargs)
-
-
-# Create lazy-loaded instances that can be imported directly
-llm = _LazyLLM('standard')
-high_performance_llm = _LazyLLM('high_performance')
-litellm_llm = _LazyLLM('agent')
 
 # Event manager instance (lazy-loaded via app_context)
 class _LazyEventManager:

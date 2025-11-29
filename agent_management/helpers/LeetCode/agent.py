@@ -1,20 +1,23 @@
-from langchain.agents import Agent, Tool
-from langchain import LLMChain, PromptTemplate
-from langchain.schema import SystemMessage
-from langchain.chains.router.llm_router import LLMRouterChain, RouterOutputParser
-from langchain.chains.router import MultiPromptChain
+"""LeetCode helper agent using modern LangChain patterns."""
+
+from langchain_core.tools import Tool
+from langchain_core.prompts import PromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from utils.utils import llm
-from utils.cot import *
+from utils.cot import TemplatedCOTChain
 from typing import Literal
-from agent_management.helpers.leetcode.LeetCodeAPI import client
-# Dummy tools (same as before)
+import re
+from agent_management.helpers.LeetCode.LeetCodeAPI import client
+
+
 def get_problem_context(problem_code):
-    """Dummy tool to get problem context"""
+    """Get problem context from LeetCode API."""
     return client.retrieve(problem_code)
- 
+
+
 solution_template = """Task:
 Solve LeetCode questions using the provided problem description and examples. 
-Focus on finding the most efficient solution (in time and space) that meets the problem’s constraints, 
+Focus on finding the most efficient solution (in time and space) that meets the problem's constraints, 
 and provide well-commented code.
 
 Instructions:
@@ -41,7 +44,7 @@ Instructions:
 
 6. Conclusion & Complexity Summary:
    - Recap the final algorithm in plain language, suitable for TTS.
-   - State the time and space complexity (e.g., “O(n log n) time, O(n) space”) and why it meets the constraints.
+   - State the time and space complexity (e.g., "O(n log n) time, O(n) space") and why it meets the constraints.
    - Note any assumptions or limitations.
 
 Output Format:
@@ -53,11 +56,14 @@ Problem Description:
 {prompt}
 """
 
+
 def get_solution(problem_description):
-    result = TemplatedCOTChain().run(prompt=problem_description,template=solution_template)
+    """Get solution using COT chain."""
+    result = TemplatedCOTChain().run(prompt=problem_description, template=solution_template)
     return result.content if hasattr(result, 'content') else str(result)
-   
-# Create router prompt template
+
+
+# Router prompt for classifying requests
 router_template = """Classify the user's request based on their query and problem context.
 Available types:
 - hint: Requests for clues, hints, or partial solutions
@@ -77,18 +83,13 @@ A: general_help
 Now classify this request:
 Query: {query}
 
-Respond ONLY with one word: [hint|guide|general_help]"""
+Respond ONLY with one word: hint, guide, or general_help"""
 
-router_prompt = PromptTemplate(
-    template=router_template,
-    input_variables=["query"],
-    output_parser=RouterOutputParser()
-)
+router_prompt = PromptTemplate.from_template(router_template)
 
-router_chain = LLMChain(llm=llm, prompt=router_prompt)
 
-hint_prompt = PromptTemplate(
-    template="""YOU ARE THE WORLD'S FOREMOST "HINT EXTRACTION ENGINE" TRAINED ON MILLIONS OF COMPETITIVE PROGRAMMING PROBLEMS AND INTERVIEW CHALLENGES. YOUR MISSION IS TO EXTRACT CONCISE, STRATEGIC, NON-SOLUTION HINTS FROM A GIVEN LEETCODE PROBLEM CONTEXT IN RESPONSE TO A USER'S QUERY, WITHOUT EVER REVEALING THE ACTUAL SOLUTION.
+# Hint generation prompt
+hint_template = """YOU ARE THE WORLD'S FOREMOST "HINT EXTRACTION ENGINE" TRAINED ON MILLIONS OF COMPETITIVE PROGRAMMING PROBLEMS AND INTERVIEW CHALLENGES. YOUR MISSION IS TO EXTRACT CONCISE, STRATEGIC, NON-SOLUTION HINTS FROM A GIVEN LEETCODE PROBLEM CONTEXT IN RESPONSE TO A USER'S QUERY, WITHOUT EVER REVEALING THE ACTUAL SOLUTION.
 
 ###INSTRUCTIONS###
 
@@ -126,12 +127,12 @@ User Query: {query}
 Good Hints:
 A BULLET-POINT LIST OF 1–3 STRATEGIC HINTS that guide the user without solving the problem, using language-specific insights if provided.
 
+Hint:"""
 
-Hint:""",
-    input_variables=["context", "query"]
-)
-hint_chain = LLMChain(llm=llm, prompt=hint_prompt)
-# Create guide generator chain (same as before)
+hint_prompt = PromptTemplate.from_template(hint_template)
+
+
+# Guide generation prompt
 guide_template = """Convert this solution into a plain human level text, conversational guide for TTS while following the following instructions:
 - The guide must not include any code.
 - The guide must be in plain text, not markdown.
@@ -142,12 +143,20 @@ guide_template = """Convert this solution into a plain human level text, convers
 {solution}
 
 Guide:"""
-guide_prompt = PromptTemplate(template=guide_template, input_variables=["solution"])
-guide_chain = LLMChain(prompt=guide_prompt, llm=llm)
 
-class LeetCodeAgent():
+guide_prompt = PromptTemplate.from_template(guide_template)
+
+
+# Create chains using modern LCEL (LangChain Expression Language)
+router_chain = router_prompt | llm | StrOutputParser()
+hint_chain = hint_prompt | llm | StrOutputParser()
+guide_chain = guide_prompt | llm | StrOutputParser()
+
+
+class LeetCodeAgent:
+    """Agent for helping with LeetCode problems."""
+    
     def __init__(self):
-        
         self.tools = [
             Tool(
                 name="GetProblemContext",
@@ -162,6 +171,7 @@ class LeetCodeAgent():
         ]
         
     def run(self, input_text: str) -> str:
+        """Process user request about a LeetCode problem."""
         # Extract problem code
         problem_code = self.extract_problem_code(input_text)
         if not problem_code:
@@ -175,43 +185,41 @@ class LeetCodeAgent():
         
         # Handle different types
         if assistance_type == "hint":
-            hint = hint_chain.run(context=context, query=input_text)
-            to_return = f"Problem context from leetcode:\n{context}\nThe Hint: \n {hint}"
-            return to_return
+            hint = hint_chain.invoke({"context": context, "query": input_text})
+            return f"Problem context from leetcode:\n{context}\nThe Hint:\n{hint}"
         elif assistance_type == "guide":
             solution = self.tools[1].func(context)
-            guide = guide_chain.run(solution=solution)
-            to_return = f"The problem context from leetcode:\n{context}\nThe Guide: {guide}"
-            return to_return
+            guide = guide_chain.invoke({"solution": solution})
+            return f"The problem context from leetcode:\n{context}\nThe Guide: {guide}"
         else:
             return f"The problem: {context}\nSatisfy the user's query.\nQuery: {input_text}"
 
     def classify_request(self, query: str, context: str) -> Literal["hint", "guide", "general_help"]:
-        """Classify user request using LLM router"""
-        result = router_chain.run(query=query, context=context)
-        return result.strip().lower()  # Normalize output
+        """Classify user request using LLM router."""
+        result = router_chain.invoke({"query": query})
+        classification = result.strip().lower()
+        # Validate result
+        if classification in ["hint", "guide", "general_help"]:
+            return classification
+        return "general_help"
 
     def extract_hint(self, context: str, query: str) -> str:
-        hint = hint_chain.run(context=context, query=query)
-        return hint
-    
-
+        """Extract hints for a problem."""
+        return hint_chain.invoke({"context": context, "query": query})
 
     def extract_problem_code(self, text: str) -> str:
         """Extract a valid LeetCode problem number (1-3000) from text.
         If multiple numbers exist, returns the first valid one."""
-        import re
-        # Find all numbers in the text
         numbers = re.findall(r'\d+', text)
-        
-        # Convert to integers and filter for valid LeetCode problem numbers (1-3000)
         valid_numbers = [num for num in map(int, numbers) if 1 <= num <= 3000]
-        
-        # Return the first valid number found, or None if no valid numbers exist
-        print(valid_numbers)
-        print(text)
         return str(valid_numbers[0]) if valid_numbers else None
+
+
+# Global client instance
+client = LeetCodeAgent()
+
+
 if __name__ == "__main__":
-# Usage examples
+    # Usage examples
     agent = LeetCodeAgent()
     print(agent.run("im working on a leetcode problem, problem 23rd exactly, can you guide me through it"))

@@ -2,7 +2,7 @@ import logger.logger as logger
 from utils import utils
 import CONSTANTS as CONST
 from typing import Dict, Any, Optional, Union
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 log = logger.Logger("llm_chain")
 
 class BaseLLMChain:
@@ -23,8 +23,12 @@ class BaseLLMChain:
 
 class COTChain(BaseLLMChain):
     """A customized LLM chain that reuses COT functionality."""
-    def __init__(self, provider: str=utils.llm_config.get("high_performance_provider"), model_kwargs: Optional[Dict[str, Any]] = None):
+    def __init__(self, provider: str = None, model_kwargs: Optional[Dict[str, Any]] = None):
         super().__init__()
+        # Get provider from config if not specified
+        from core.config_manager import config
+        if provider is None:
+            provider = config.get('LLM.high_performance_provider', 'openai')
         self.provider = provider
         self.llm = utils.high_performance_llm
         self.model_kwargs = model_kwargs or {}
@@ -109,7 +113,7 @@ class COTChain(BaseLLMChain):
 # Example use with additional features like templating
 class TemplatedCOTChain(COTChain):
     """LLM chain with templating capabilities using LangChain's PromptTemplate."""
-    def __init__(self, provider: str=utils.llm_config.get("high_performance_provider"), template: str = "", model_kwargs=None):
+    def __init__(self, provider: str = None, template: str = "", model_kwargs=None):
         super().__init__(provider, model_kwargs)
         self.prompt_template = PromptTemplate.from_template(template) if template else None
         
