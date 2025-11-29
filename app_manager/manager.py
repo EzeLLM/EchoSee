@@ -1,13 +1,20 @@
 from agent_management import agent_manager
-from utils.utils import llm, llm_config
+from core.config_manager import config
+from core.app_context import app_context
 from tts.tts import TTS
 from agent_management.agent_manager import AgentManager
 from langchain_core.messages import HumanMessage
-from utils.utils import *
 from stt.stt import STT
+
 def main():
+    # Initialize application context (must be first!)
+    app_context.initialize()
+
+    # Get TTS config
+    tts_config = config.get_section('TTS')
+
     # Initialize TTS
-    tts = TTS( )
+    tts = TTS()
     print("Voice Assistant started! Press Enter after typing your question (type 'quit' to exit)")
     am = AgentManager()
     stt = STT()

@@ -1,18 +1,19 @@
-from utils.utils import open_yaml
-import CONSTANTS
+from core.config_manager import config
 from playsound import playsound
-config = open_yaml(CONSTANTS.CONFIG_PATH, 'callbacks')
 from threading import Event, Thread
+
 ########### ALARM ###########
 class Alarm:
     def __init__(self):
         self._stop_event = Event()
         self._alarm_thread = None
+        self.callbacks_config = config.get_section('callbacks')
+
     def alarm(self):
         self._stop_event.clear()
         def _play_loop():
             while not self._stop_event.is_set():
-                playsound(config['alarm']['sound'])
+                playsound(self.callbacks_config['alarm']['sound'])
                 if self._stop_event.is_set():
                     break
         self._alarm_thread = Thread(target=_play_loop, daemon=True)

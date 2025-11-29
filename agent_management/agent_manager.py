@@ -10,13 +10,13 @@ from langchain_core.messages import HumanMessage, BaseMessage
 from utils.utils import llm, llm_config
 from langchain_core.tools import tool
 import threading
-from utils.utils import open_yaml
+from core.config_manager import config
 from event_manager import tools as event_tools
-import CONSTANTS
+
 class AgentManager:
     def __init__(self):
         # Set up tools
-        self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'AgentManager')
+        self.config = config.get_section('AgentManager')
         self.tools = [event_tools.set_alarm_at_specific_time,event_tools.set_alarm_with_time_delta,agents.search, agents.get_current_time, agents.get_current_date,event_tools.stop_alarm, agents.leetcode_agent,echonoti_agent.send_notification,agents.robust_search]
         
         # Initialize conversation history

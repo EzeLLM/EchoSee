@@ -8,7 +8,7 @@ from typing import List
 import numpy as np
 import openai
 from sklearn.cluster import KMeans
-from tavily import TavilyClient
+from core.clients import clients
 from langchain_core.messages import HumanMessage, SystemMessage
 from utils.utils import llm, high_performance_llm  # noqa: E402
 
@@ -36,8 +36,8 @@ class SearchClient:
         self.max_queries = config.max_queries
         self.base_llm = llm
         self.hp_llm = high_performance_llm
-        self.tavily = TavilyClient(os.environ["TAVILY_API_KEY"])
-        openai.api_key = os.environ.get("OPENAI_API_KEY")
+        self.tavily = clients.tavily
+        openai.api_key = os.environ.get("OPENAI_API_KEY")  # Still needed for openai.embeddings
 
         # Local cache to avoid repeated embedding calls for the same text.
         # Key   : str (raw text)

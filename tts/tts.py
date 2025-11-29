@@ -4,19 +4,19 @@ from IPython.display import Audio
 import numpy as np
 import io
 from pathlib import Path
-from openai import OpenAI
-import utils.utils as utils
-import CONSTANTS
+from core.config_manager import config
+from core.clients import clients
 import os
 import dotenv
 dotenv.load_dotenv()
+
 def list_audio_devices():
     """Display all available audio output devices."""
     devices = sd.query_devices()
-    
+
     print("Available Audio Devices:")
     print("-----------------------")
-    
+
     for i, device in enumerate(devices):
         if device['max_output_channels'] > 0:
             default_mark = " (default)" if device.get('default_output') else ""
@@ -24,14 +24,14 @@ def list_audio_devices():
             print(f"    Channels: {device['max_output_channels']}")
             print(f"    Sample Rate: {device['default_samplerate']}")
             print()
-    
+
     return devices
 
 class TTS:
     """Text-to-Speech class supporting both Kokoro and OpenAI TTS engines."""
-    
+
     def __init__(self, lang_code=None, voice=None):
-        self.config = utils.open_yaml(CONSTANTS.CONFIG_PATH, 'TTS')
+        self.config = config.get_section('TTS')
         if lang_code is not None:
             self.config['lang_code'] = lang_code
         if voice is not None:
@@ -63,7 +63,7 @@ class TTS:
     def _init_openai(self):
         """Initialize OpenAI TTS engine."""
         try:
-            self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            self.client = clients.openai
             self.voice = self.config.get('voice', 'coral')
             self.model = self.config.get('model', 'gpt-4o-mini-tts')
             self.response_format = self.config.get('response_format', 'mp3')

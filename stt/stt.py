@@ -1,10 +1,9 @@
 import tempfile
-import CONSTANTS
-from utils.utils import open_yaml
+from core.config_manager import config
+from core.clients import clients
 import threading
 import pyaudio
 import readchar
-from openai import OpenAI
 import dotenv
 import os
 import subprocess
@@ -14,8 +13,8 @@ dotenv.load_dotenv()
 
 class STT():
     def __init__(self):
-        self.config = open_yaml(CONSTANTS.CONFIG_PATH, 'STT')
-        self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.config = config.get_section('STT')
+        self.client = clients.openai
         self.sample_rate = self.config.get('sample_rate', 16000)
         self.channels = self.config.get('channels', 1)
         self.format = pyaudio.paInt16

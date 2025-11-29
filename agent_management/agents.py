@@ -5,7 +5,7 @@ dotenv.load_dotenv()
 from logger import logger
 logger = logger.Logger('agent')
 from utils.utils import litellm_llm, llm
-from tavily import TavilyClient
+from core.clients import clients
 from datetime import datetime
 from agent_management.helpers.leetcode.agent import client as leetcode_client
 from agent_management.helpers.search.SearchClient import search_agent as _robust_search_agent
@@ -72,10 +72,10 @@ def search(query:str, time_range:str,return_raw_results) -> str:
         search_params['include_answer'] = 'basic'
 
     # Execute search
-    client = TavilyClient(os.environ['TAVILY_API_KEY'])
+    tavily_client = clients.tavily
     print(f"Searching for '{query}' (time range: '{time_range}'), return raw: {return_raw_results}")
-    
-    response = client.search(**search_params)
+
+    response = tavily_client.search(**search_params)
 
     # Process results
     if return_raw_results:
