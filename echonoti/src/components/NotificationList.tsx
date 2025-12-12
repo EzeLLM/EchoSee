@@ -1,11 +1,34 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { Notification } from "@/lib/types";
 import { NotificationCard } from "./NotificationCard";
+import { useT } from "@/hooks/use-i18n";
 
 export function NotificationList({ initialNotifications }: { initialNotifications: Notification[] }) {
-  const readNotifications = initialNotifications.filter((n) => n.read);
-  const unreadNotifications = initialNotifications.filter((n) => !n.read);
+  const [notifications, setNotifications] = useState(initialNotifications);
+  const t = useT();
 
-  if (initialNotifications.length === 0) {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("/api/notifications");
+        if (res.ok) {
+          const data: Notification[] = await res.json();
+          setNotifications(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch notifications", err);
+      }
+    };
+    const id = setInterval(fetchData, 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  const readNotifications = notifications.filter((n) => n.read);
+  const unreadNotifications = notifications.filter((n) => !n.read);
+
+  if (notifications.length === 0) {
     return null;
   }
 
@@ -13,7 +36,9 @@ export function NotificationList({ initialNotifications }: { initialNotification
     <div className="space-y-8">
       {unreadNotifications.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold mb-4 font-headline tracking-tighter text-muted-foreground">Unread</h2>
+          <h2 className="text-xl font-bold mb-4 font-headline tracking-tighter text-muted-foreground">
+            {t("unread")}
+          </h2>
           <div className="space-y-4">
             {unreadNotifications.map((notification) => (
               <NotificationCard key={notification.id} notification={notification} />
@@ -25,7 +50,9 @@ export function NotificationList({ initialNotifications }: { initialNotification
       {readNotifications.length > 0 && (
         <div className="pt-8">
            {unreadNotifications.length > 0 && <div className="border-t mb-8"></div>}
-          <h2 className="text-xl font-bold mb-4 font-headline tracking-tighter text-muted-foreground">Read</h2>
+          <h2 className="text-xl font-bold mb-4 font-headline tracking-tighter text-muted-foreground">
+            {t("read")}
+          </h2>
           <div className="space-y-4">
             {readNotifications.map((notification) => (
               <NotificationCard key={notification.id} notification={notification} />

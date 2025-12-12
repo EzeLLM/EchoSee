@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { Rss } from "lucide-react";
+import { useT } from "@/hooks/use-i18n";
 
 export function Header() {
+  const t = useT();
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
@@ -17,13 +21,25 @@ export function Header() {
               href="/"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              Notifications
+              {t("notifications")}
             </Link>
             <Link
               href="/bookmarked"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              Bookmarked
+              {t("bookmarked")}
+            </Link>
+            <Link
+              href="/settings"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              {t("settings")}
+            </Link>
+            <Link
+              href="/about"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              {t("about")}
             </Link>
           </nav>
         </div>

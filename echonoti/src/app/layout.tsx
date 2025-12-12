@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from "@/components/Header";
 import PwaRegistry from "@/components/PwaRegistry";
+import { SettingsProvider } from "@/components/SettingsProvider";
+import { I18nProvider } from "@/hooks/use-i18n";
 import "./globals.css";
 
 export const dynamic = 'force-dynamic';
@@ -44,10 +46,14 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="EchoNoti" />
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
-        <PwaRegistry />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Toaster />
+        <SettingsProvider>
+          <I18nProvider>
+            <PwaRegistry />
+            <Header />
+            <main className="flex-1">{children}</main>
+            <Toaster />
+          </I18nProvider>
+        </SettingsProvider>
       </body>
     </html>
   );

@@ -1,7 +1,12 @@
 'use server';
 
 import { revalidatePath } from "next/cache";
-import { getNotificationById, updateNotification, deleteNotification as dbDeleteNotification } from "./db";
+import {
+  getNotificationById,
+  updateNotification,
+  deleteNotification as dbDeleteNotification,
+  clearNotifications,
+} from "./db";
 
 // The revalidation is now handled by the client router on dialog close.
 export async function markAsRead(id: string) {
@@ -25,4 +30,10 @@ export async function deleteNotification(formData: FormData) {
     revalidatePath("/");
     revalidatePath("/bookmarked");
   }
+}
+
+export async function clearAllNotifications() {
+  await clearNotifications();
+  revalidatePath("/");
+  revalidatePath("/bookmarked");
 }

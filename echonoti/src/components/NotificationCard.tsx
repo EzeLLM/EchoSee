@@ -31,11 +31,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useT } from "@/hooks/use-i18n";
 
 export function NotificationCard({ notification }: { notification: Notification }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
+  const t = useT();
 
   useEffect(() => {
     setIsClient(true);
@@ -105,7 +107,7 @@ export function NotificationCard({ notification }: { notification: Notification 
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8"
-                  aria-label={notification.bookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                  aria-label={notification.bookmarked ? t('bookmark_remove') : t('bookmark_add')}
                 >
                   <Bookmark
                     className={cn(
@@ -118,21 +120,19 @@ export function NotificationCard({ notification }: { notification: Notification 
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    {notification.bookmarked
-                      ? 'Remove bookmark?'
-                      : 'Add bookmark?'}
+                    {notification.bookmarked ? t('bookmark_remove') : t('bookmark_add')}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     {notification.bookmarked
-                      ? 'This will remove the bookmark from this notification.'
-                      : 'This will bookmark this notification.'}
+                      ? t('bookmark_remove_desc')
+                      : t('bookmark_add_desc')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <form action={toggleBookmarkStatus}>
                     <input type="hidden" name="id" value={notification.id} />
-                    <AlertDialogAction type="submit">Confirm</AlertDialogAction>
+                    <AlertDialogAction type="submit">{t('confirm')}</AlertDialogAction>
                   </form>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -144,27 +144,27 @@ export function NotificationCard({ notification }: { notification: Notification 
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
-                  aria-label="Delete notification"
+                  aria-label={t('delete')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to delete this?</AlertDialogTitle>
+                  <AlertDialogTitle>{t('delete_confirm')}</AlertDialogTitle>
                   <AlertDialogDescription>
                     This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <form action={deleteNotification}>
                     <input type="hidden" name="id" value={notification.id} />
                     <AlertDialogAction
                       type="submit"
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/80"
                     >
-                      Delete
+                      {t('delete')}
                     </AlertDialogAction>
                   </form>
                 </AlertDialogFooter>
@@ -189,7 +189,7 @@ export function NotificationCard({ notification }: { notification: Notification 
             </ReactMarkdown>
         </div>
         <DialogFooter>
-            <Button onClick={() => handleOpenChange(false)}>Close</Button>
+            <Button onClick={() => handleOpenChange(false)}>{t('close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
