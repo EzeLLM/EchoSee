@@ -75,7 +75,7 @@ def main():
                 response = am.process_message(user_query)
                 assistant_message = response[-1].content
                 print(f"\nAssistant: {assistant_message}")
-                tts.play_with_device(assistant_message, device=tts_config.get('device'))
+                # tts.play_with_device(assistant_message, device=tts_config.get('device'))
 
         except KeyboardInterrupt:
             print("\nInterrupted by user")

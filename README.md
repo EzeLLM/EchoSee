@@ -103,9 +103,13 @@ EchoSee/
 │   └── welcome.png
 ├── logs/                         # Application logs
 ├── mcp_servers/                  # 🆕 MCP server integrations
+├── scripts/                      # Utility scripts
+│   └── test_mcp.py               # MCP server testing tool
 ├── config.yml                    # Configuration file
 ├── requirements.txt
 ├── setup_dev.sh                  # Development setup script
+├── launch.sh                     # 🆕 Automated launch with health checks
+├── launch-we.sh                  # 🆕 Launch with Echonoti PWA
 ├── README.md
 └── LICENSE
 ```
@@ -254,9 +258,76 @@ LANGCHAIN_API_KEY=ls-your-langsmith-key-here
 ```
 
 5. **Start the Assistant:**
+
+**Option A: Using Launch Scripts (Recommended)**
+```bash
+# Launch EchoSee with full environment setup and health checks
+./launch.sh
+
+# Launch EchoSee + Echonoti PWA
+./launch-we.sh
+```
+
+**Option B: Manual Launch**
 ```bash
 python -m app_manager.manager
 ```
+
+### Launch Scripts
+
+EchoSee provides automated launch scripts with comprehensive health checks and environment setup:
+
+#### `launch.sh` - Standard Launch
+- ✓ Virtual environment setup and activation
+- ✓ Environment variable loading and validation
+- ✓ Python dependency checks and installation
+- ✓ MCP server health monitoring
+- ✓ Configuration summary
+- ✓ Beautiful colored output
+
+**Usage:**
+```bash
+# Full launch with all checks
+./launch.sh
+
+# Skip dependency checks (faster startup)
+./launch.sh --skip-deps
+
+# Skip MCP health checks
+./launch.sh --skip-health
+
+# Skip environment validation
+./launch.sh --skip-env
+
+# Skip all checks (fastest)
+./launch.sh --skip-all
+
+# Show help
+./launch.sh --help
+```
+
+#### `launch-we.sh` - Launch with Echonoti
+Everything from `launch.sh` plus:
+- ✓ Node.js/npm validation
+- ✓ Echonoti dependency setup
+- ✓ Dual service launch (EchoSee + Echonoti PWA)
+- ✓ Graceful cleanup on exit (Ctrl+C stops both services)
+
+**Usage:**
+```bash
+# Full launch with Echonoti
+./launch-we.sh
+
+# With skip options (same as launch.sh)
+./launch-we.sh --skip-all
+```
+
+**Available Options:**
+- `--skip-deps` - Skip dependency installation checks
+- `--skip-health` - Skip MCP server health checks
+- `--skip-env` - Skip environment variable validation
+- `--skip-all` - Skip all checks (deps, health, env)
+- `-h, --help` - Show help message
 
 ### Health Check
 Verify your installation:
