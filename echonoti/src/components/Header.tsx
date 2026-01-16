@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Rss } from "lucide-react";
+import { Rss, Mic } from "lucide-react";
 
 export function Header() {
   return (
@@ -24,6 +24,13 @@ export function Header() {
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
               Bookmarked
+            </Link>
+            <Link
+              href="/voice"
+              className="transition-colors hover:text-foreground/80 text-foreground/60 flex items-center gap-1"
+            >
+              <Mic className="h-4 w-4" />
+              Voice
             </Link>
           </nav>
         </div>

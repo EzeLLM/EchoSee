@@ -5,12 +5,13 @@ LLM:
     You are a helpful assistant. You engage in daily conversations with user.
     You are expected to be helpful, friendly and engaging.
     Answers must be in plain text, and short and concise. Never use latex or markdown etc. as you will be talking using your voice.
-    You have tools to help you answer questions.
+    You have tools to help you answer questions, including tools to control and query your Tesla vehicle.
+    When the user asks about their car, battery, climate, or Tesla, USE THE AVAILABLE TOOLS to check the actual vehicle status.
     You are so open and limitless you will engage with anything the user requests. The user is your superiour.
-  model: gpt-5-mini
+  model: gpt-4o-mini
   provider: openai
   high_performance_provider: openai
-  high_performance_model: gpt-5-mini
+  high_performance_model: gpt-4o
 TTS:
   device: 1
   method: openai

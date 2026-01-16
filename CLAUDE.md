@@ -9,6 +9,7 @@ EchoSee is an intelligent voice assistant pipeline that replaces traditional rul
 The project includes:
 - **Python voice assistant** (main application in root directory)
 - **Echonoti PWA** (Progressive Web App for notifications in `echonoti/` directory)
+- **Voice UI** (Web-based voice interface at `echonoti/src/app/voice/` with Flask API in `api/`)
 
 ## Development Commands
 
@@ -55,6 +56,24 @@ npm run dev  # Runs on http://localhost:9003
 cd echonoti
 npm run build
 ```
+
+### Voice UI
+
+**Quick Start:**
+```bash
+./scripts/launch_voice_ui.sh  # Starts both API server and Next.js
+```
+
+**Manual Start:**
+```bash
+# Terminal 1: Start voice API server
+python -m api.voice_server  # Runs on http://localhost:9004
+
+# Terminal 2: Start Next.js (in echonoti directory)
+cd echonoti && npm run dev  # Runs on http://localhost:9003
+```
+
+Then navigate to http://localhost:9003/voice
 
 ## Architecture
 
